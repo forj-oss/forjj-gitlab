@@ -1,0 +1,3 @@
+package: forjj-gitlab
+import:
+- package: github.com/forj-oss/goforjj

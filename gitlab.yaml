@@ -1,0 +1,27 @@
+---
+plugin: "gitlab"
+version: "0.1"
+description: "gitlab plugin for FORJJ."
+runtime:
+  docker_image: "docker.hos.hpecorp.net/forjj/gitlab"
+  service_type: "REST API"
+  service:
+    #socket: "gitlab.sock"
+    parameters: [ "service", "start" ]
+created_flag_file: "{{ .InstanceName }}/forjj-{{ .Name }}.yaml"
+task_flags:
+  common:
+    forjj-infra:
+      help: "Name of the Infra repository to use"
+    gitlab-debug:
+      help: "To activate gitlab debug information"
+    forjj-source-mount: # Used by the plugin to store plugin data in yaml. See gitlab_plugin.go
+      help: "Where the source dir is located for gitlab plugin."
+    forjj-instance-name:
+    forjj-deploy-mount:
+    forjj-organization:
+  maintain:
+    deploy-to:
+      default: docker
+
+# plugin yaml documentation on https://github.com/forj-oss/goforjj/blob/master/README.md#writing-your-pluginyaml-file
