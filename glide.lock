@@ -1,0 +1,46 @@
+hash: 8a5a11cbd6d89d4cc0aa55bfd4a3189f266741000647a21f782f774f0eb43633
+updated: 2018-09-07T15:22:30.670853655Z
+imports:
+- name: github.com/alecthomas/kingpin
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
+- name: github.com/alecthomas/template
+  version: a0175ee3bccc567396460bf5acd36800cb10c49c
+  subpackages:
+  - parse
+- name: github.com/alecthomas/units
+  version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
+- name: github.com/fatih/color
+  version: 2d684516a8861da43017284349b7e303e809ac21
+- name: github.com/forj-oss/forjj-modules
+  version: 1fe84da5bc9ea9c8e809282fb17949656989e27d
+  subpackages:
+  - trace
+- name: github.com/forj-oss/goforjj
+  version: 8b8b0d2085a0f5397dcdb302cb43cbf62fb9c055
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/mux
+  version: e3702bed27f0d39777b0b37b664b6280e8ef8fbf
+- name: github.com/mattn/go-colorable
+  version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
+- name: github.com/mattn/go-isatty
+  version: 3fb116b820352b7f0c281308a4d6250c22d94e27
+- name: github.com/moul/http2curl
+  version: 9ac6cf4d929b2fa8fd2d2e6dec5bb0feb4f4911d
+- name: github.com/parnurzeal/gorequest
+  version: a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3
+- name: github.com/pkg/errors
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
+- name: golang.org/x/net
+  version: 161cd47e91fd58ac17490ef4d742dc98bb4cf60e
+  subpackages:
+  - publicsuffix
+- name: golang.org/x/sys
+  version: 8cf3aee429924738c56c34bb819c4ea8273fc434
+  subpackages:
+  - unix
+- name: gopkg.in/alecthomas/kingpin.v2
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
+- name: gopkg.in/yaml.v2
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
+testImports: []
