@@ -19,9 +19,115 @@ task_flags:
       help: "Where the source dir is located for gitlab plugin."
     forjj-instance-name:
     forjj-deploy-mount:
-    forjj-organization:
+    forjj-group:
   maintain:
     deploy-to:
       default: docker
-
-# plugin yaml documentation on https://github.com/forj-oss/goforjj/blob/master/README.md#writing-your-pluginyaml-file
+objects: # All objects will be delivered by forjj except workspace/infra under objects/<type>/<instance>/<action>/key=value
+  # Define infra object special flag for github
+  app: # already defined by Forjj
+    # Default is : actions: ["add", "change", "remove"] No need to define it.
+    flags:
+      server:
+        help: "Github Enterprise Server name. By default, public 'github.com' API is used."
+      forjj-group:
+        only-for-actions: ["add"]
+        help: "Default FORJJ group. Used by default as gitlab group. If you want different one, use --gitlab-group"
+#      organization:
+ #       only-for-actions: ["add"]
+  #      help: "Github Organization name. By default, it uses the FORJJ organization name"
+      group:
+        only-for-actions: ["add"]
+        help: "Gitlab group name."
+      production-group:
+        help: "Production github organization name. By default, it uses the FORJJ organization name"
+        default: "{{ .Deployments.GetFromPRO \"app\" .Current.Name \"organization\" }}"
+      forjj-infra:
+        only-for-actions: ["add", "change"]
+        help: "Name of the Infra repository to use in github if requested."
+      token:
+        cli-exported-to-actions: ["create", "update", "maintain"]
+        only-for-actions: ["add", "change"]
+        help: "Github token to access. This token must authorize organization level access."
+        required: true
+        secure: true
+        envar: "TOKEN"
+      teams-disabled:
+        help: "true if the plugin should not manage github users and groups"
+        default: false
+      repos-disabled:
+        help: "true if the plugin should not manage github repositories except the infra repository."
+        default: false
+      organization-webhooks-disabled:
+        help: true if the plugin should not manage github organization webhooks.
+        default: false
+      repos-webhooks-disabled:
+        help: true if the plugin should not manage github repositories webhooks.
+        default: false
+      org-hook-policy:
+        help: Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.
+        default: sync
+      pro-deployment:
+        help: true if current deployment is production one
+        default: "{{ if (eq (.Deployments.Get .Current.Deployment).Type \"PRO\") }}true{{ else }}false{{ end }}"
+  # Define github group exposure to forjj
+  group: # New object type in forjj
+    # Default is : actions: ["add", "change", "remove", "list", "rename"]
+    help: "Manage teams in github"
+    identified_by_flag: name
+    flags:
+      members:
+        only-for-actions: ["add"]
+        help: "List of users to attach to the new group."
+        of-type: "[]string"
+      name:
+        help: "group name"
+        required: true
+      role:
+        only-for-actions: ["add"]
+        help: "List of roles to apply to the new group."
+  # Define github users exposure to forjj
+  user: # New object type in forjj
+    # Default is : actions: ["add", "change", "remove", "list", "rename"]
+    help: "Manage organization list of users"
+    identified_by_flag: name
+    flags:
+      name:
+        options:
+          help: "user name"
+          required: true
+      role:
+        only-for-actions: ["add"]
+        options:
+          help: "List of roles to apply to the new user."
+  repo: # Enhance Forjj repo object
+    actions: ["add", "change"]
+    flags:
+      name:
+        help: "Repository name"
+      title:
+        help: "Github Repository title"
+      issue_tracker:
+        help: "To activate the Issue tracker to the Repository"
+        default: "true"
+      users:
+        only-for-actions: ["add"]
+        help: "List of users to attach to the repository, separated by comma."
+        format-regexp: "[+-]?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9]))*,"
+      groups:
+        only-for-actions: ["add"]
+        help: "List of groups to attach to the repository, separated by comma."
+        format-regexp: "[+-]?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9]))*,"
+      flow:
+        help: "Flow activated on this repository"
+      forjj-workspace-mount:
+        help: "Where the workspace dir is located in the github plugin container."
+      webhooks-management:
+        help: Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.
+        default: sync
+      role:
+        help: Role of the repository. Forjj will set it to 'infra', 'deploy' or 'code'
+      Deployable:
+        internal: true
+        help: true if the repo is identified by forjj as deployable in the current deployment context
+        default: "{{ if (index .Forjfile.Repos .Current.Name).IsDeployable }}true{{ end }}"
