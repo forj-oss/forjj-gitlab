@@ -3,6 +3,77 @@
 // To update those structure, update the 'gitlab.yaml' and run 'go generate'
 package main
 
+// Object app groups structure
+
+// Groups structure
+
+
+// Object Instance structures
+
+type AppInstanceStruct struct {
+	ForjjGroup string `json:"forjj-group"` // Default FORJJ group. Used by default as gitlab group. If you want different one, use --gitlab-group
+	ForjjInfra string `json:"forjj-infra"` // Name of the Infra repository to use in github if requested.
+	Group string `json:"group"` // Gitlab group name.
+	OrgHookPolicy string `json:"org-hook-policy"` // Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.
+	OrganizationWebhooksDisabled string `json:"organization-webhooks-disabled"` // true if the plugin should not manage github organization webhooks.
+	ProDeployment string `json:"pro-deployment"` // true if current deployment is production one
+	ProductionGroup string `json:"production-group"` // Production github organization name. By default, it uses the FORJJ organization name
+	ReposDisabled string `json:"repos-disabled"` // true if the plugin should not manage github repositories except the infra repository.
+	ReposWebhooksDisabled string `json:"repos-webhooks-disabled"` // true if the plugin should not manage github repositories webhooks.
+	Server string `json:"server"` // Github Enterprise Server name. By default, public 'github.com' API is used.
+	TeamsDisabled string `json:"teams-disabled"` // true if the plugin should not manage github users and groups
+	Token string `json:"token"` // Github token to access. This token must authorize organization level access.
+
+}
+
+// Object group groups structure
+
+// Groups structure
+
+
+// Object Instance structures
+
+type GroupInstanceStruct struct {
+	Members []string `json:"members"` // List of users to attach to the new group.
+	Name string `json:"name"` // group name
+	Role string `json:"role"` // List of roles to apply to the new group.
+
+}
+
+// Object repo groups structure
+
+// Groups structure
+
+
+// Object Instance structures
+
+type RepoInstanceStruct struct {
+	Deployable string `json:"Deployable"` // true if the repo is identified by forjj as deployable in the current deployment context
+	Flow string `json:"flow"` // Flow activated on this repository
+	ForjjWorkspaceMount string `json:"forjj-workspace-mount"` // Where the workspace dir is located in the github plugin container.
+	Groups string `json:"groups"` // List of groups to attach to the repository, separated by comma.
+	Issue_tracker string `json:"issue_tracker"` // To activate the Issue tracker to the Repository
+	Name string `json:"name"` // Repository name
+	Role string `json:"role"` // Role of the repository. Forjj will set it to 'infra', 'deploy' or 'code'
+	Title string `json:"title"` // Github Repository title
+	Users string `json:"users"` // List of users to attach to the repository, separated by comma.
+	WebhooksManagement string `json:"webhooks-management"` // Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.
+
+}
+
+// Object user groups structure
+
+// Groups structure
+
+
+// Object Instance structures
+
+type UserInstanceStruct struct {
+	Name string `json:"name"` // 
+	Role string `json:"role"` // 
+
+}
+
 
 // ************************
 // Create request structure
@@ -12,9 +83,9 @@ type ForjCommonStruct struct {
 	ForjjDeploymentEnv  string `json:"deployment-env"`  // Deployment environment name
 	ForjjDeploymentType string `json:"deployment-type"` // Deployment environment type
 	ForjjDeployMount string `json:"forjj-deploy-mount"`
+	ForjjGroup string `json:"forjj-group"`
 	ForjjInfra string `json:"forjj-infra"`
 	ForjjInstanceName string `json:"forjj-instance-name"`
-	ForjjOrganization string `json:"forjj-organization"`
 	ForjjSourceMount string `json:"forjj-source-mount"`
 	GitlabDebug string `json:"gitlab-debug"`
 }
@@ -30,6 +101,10 @@ type CreateReq struct {
 }
 
 type CreateArgReq struct {
+	App map[string]AppInstanceStruct `json:"app"` // Object details
+	Group map[string]GroupInstanceStruct `json:"group"` // Object details
+	Repo map[string]RepoInstanceStruct `json:"repo"` // Object details
+	User map[string]UserInstanceStruct `json:"user"` // Object details
 }
 
 // ************************
@@ -47,6 +122,10 @@ type UpdateReq struct {
 }
 
 type UpdateArgReq struct {
+	App map[string]AppInstanceStruct `json:"app"` // Object details
+	Group map[string]GroupInstanceStruct `json:"group"` // Object details
+	Repo map[string]RepoInstanceStruct `json:"repo"` // Object details
+	User map[string]UserInstanceStruct `json:"user"` // Object details
 }
 
 // **************************
@@ -65,6 +144,11 @@ type MaintainReq struct {
 }
 
 type MaintainArgReq struct {
+	App map[string]AppMaintainStruct `json:"app"` // Object details
+}
+
+type AppMaintainStruct struct {
+	Token string `json:"token"` // Github token to access. This token must authorize organization level access.
 }
 
 
@@ -90,10 +174,116 @@ const YamlDesc = "---\n" +
    "      help: \"Where the source dir is located for gitlab plugin.\"\n" +
    "    forjj-instance-name:\n" +
    "    forjj-deploy-mount:\n" +
-   "    forjj-organization:\n" +
+   "    forjj-group:\n" +
    "  maintain:\n" +
    "    deploy-to:\n" +
    "      default: docker\n" +
-   "\n" +
-   "# plugin yaml documentation on https://github.com/forj-oss/goforjj/blob/master/README.md#writing-your-pluginyaml-file\n" +
+   "objects: # All objects will be delivered by forjj except workspace/infra under objects/<type>/<instance>/<action>/key=value\n" +
+   "  # Define infra object special flag for github\n" +
+   "  app: # already defined by Forjj\n" +
+   "    # Default is : actions: [\"add\", \"change\", \"remove\"] No need to define it.\n" +
+   "    flags:\n" +
+   "      server:\n" +
+   "        help: \"Github Enterprise Server name. By default, public 'github.com' API is used.\"\n" +
+   "      forjj-group:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"Default FORJJ group. Used by default as gitlab group. If you want different one, use --gitlab-group\"\n" +
+   "#      organization:\n" +
+   " #       only-for-actions: [\"add\"]\n" +
+   "  #      help: \"Github Organization name. By default, it uses the FORJJ organization name\"\n" +
+   "      group:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"Gitlab group name.\"\n" +
+   "      production-group:\n" +
+   "        help: \"Production github organization name. By default, it uses the FORJJ organization name\"\n" +
+   "        default: \"{{ .Deployments.GetFromPRO \\\"app\\\" .Current.Name \\\"organization\\\" }}\"\n" +
+   "      forjj-infra:\n" +
+   "        only-for-actions: [\"add\", \"change\"]\n" +
+   "        help: \"Name of the Infra repository to use in github if requested.\"\n" +
+   "      token:\n" +
+   "        cli-exported-to-actions: [\"create\", \"update\", \"maintain\"]\n" +
+   "        only-for-actions: [\"add\", \"change\"]\n" +
+   "        help: \"Github token to access. This token must authorize organization level access.\"\n" +
+   "        required: true\n" +
+   "        secure: true\n" +
+   "        envar: \"TOKEN\"\n" +
+   "      teams-disabled:\n" +
+   "        help: \"true if the plugin should not manage github users and groups\"\n" +
+   "        default: false\n" +
+   "      repos-disabled:\n" +
+   "        help: \"true if the plugin should not manage github repositories except the infra repository.\"\n" +
+   "        default: false\n" +
+   "      organization-webhooks-disabled:\n" +
+   "        help: true if the plugin should not manage github organization webhooks.\n" +
+   "        default: false\n" +
+   "      repos-webhooks-disabled:\n" +
+   "        help: true if the plugin should not manage github repositories webhooks.\n" +
+   "        default: false\n" +
+   "      org-hook-policy:\n" +
+   "        help: Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.\n" +
+   "        default: sync\n" +
+   "      pro-deployment:\n" +
+   "        help: true if current deployment is production one\n" +
+   "        default: \"{{ if (eq (.Deployments.Get .Current.Deployment).Type \\\"PRO\\\") }}true{{ else }}false{{ end }}\"\n" +
+   "  # Define github group exposure to forjj\n" +
+   "  group: # New object type in forjj\n" +
+   "    # Default is : actions: [\"add\", \"change\", \"remove\", \"list\", \"rename\"]\n" +
+   "    help: \"Manage teams in github\"\n" +
+   "    identified_by_flag: name\n" +
+   "    flags:\n" +
+   "      members:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"List of users to attach to the new group.\"\n" +
+   "        of-type: \"[]string\"\n" +
+   "      name:\n" +
+   "        help: \"group name\"\n" +
+   "        required: true\n" +
+   "      role:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"List of roles to apply to the new group.\"\n" +
+   "  # Define github users exposure to forjj\n" +
+   "  user: # New object type in forjj\n" +
+   "    # Default is : actions: [\"add\", \"change\", \"remove\", \"list\", \"rename\"]\n" +
+   "    help: \"Manage organization list of users\"\n" +
+   "    identified_by_flag: name\n" +
+   "    flags:\n" +
+   "      name:\n" +
+   "        options:\n" +
+   "          help: \"user name\"\n" +
+   "          required: true\n" +
+   "      role:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        options:\n" +
+   "          help: \"List of roles to apply to the new user.\"\n" +
+   "  repo: # Enhance Forjj repo object\n" +
+   "    actions: [\"add\", \"change\"]\n" +
+   "    flags:\n" +
+   "      name:\n" +
+   "        help: \"Repository name\"\n" +
+   "      title:\n" +
+   "        help: \"Github Repository title\"\n" +
+   "      issue_tracker:\n" +
+   "        help: \"To activate the Issue tracker to the Repository\"\n" +
+   "        default: \"true\"\n" +
+   "      users:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"List of users to attach to the repository, separated by comma.\"\n" +
+   "        format-regexp: \"[+-]?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9]))*,\"\n" +
+   "      groups:\n" +
+   "        only-for-actions: [\"add\"]\n" +
+   "        help: \"List of groups to attach to the repository, separated by comma.\"\n" +
+   "        format-regexp: \"[+-]?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9]))*,\"\n" +
+   "      flow:\n" +
+   "        help: \"Flow activated on this repository\"\n" +
+   "      forjj-workspace-mount:\n" +
+   "        help: \"Where the workspace dir is located in the github plugin container.\"\n" +
+   "      webhooks-management:\n" +
+   "        help: Set 'sync' to manage all repository webhooks. set 'manage' to manage only listed.\n" +
+   "        default: sync\n" +
+   "      role:\n" +
+   "        help: Role of the repository. Forjj will set it to 'infra', 'deploy' or 'code'\n" +
+   "      Deployable:\n" +
+   "        internal: true\n" +
+   "        help: true if the repo is identified by forjj as deployable in the current deployment context\n" +
+   "        default: \"{{ if (index .Forjfile.Repos .Current.Name).IsDeployable }}true{{ end }}\"\n" +
    ""

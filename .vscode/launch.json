@@ -1,0 +1,48 @@
+{
+    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
+    // Pointez pour afficher la description des attributs existants.
+    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run forjj-gitlab server",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}",
+            "env": {
+                "GOTRACE": "true"
+            },
+            "args": [
+                "service",
+                "start",
+                "--socket-path",
+                "/home/kevin/WebProjects/CGI/Forges/gitlabForge/gitlab/.forj-workspace/lib"
+            ],
+            "showLog": true
+        }/*,
+        {
+            "name": "DXC: Run forjj-gitlab server",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}",
+            "env": {
+                "GOTRACE": "true"
+            },
+            "args": [
+                "service",
+                "start",
+                "--socket-path",
+                "/home/kevin/WebProjects/CGI/Forges/gitlabForge/gitlab/.forj-workspace/lib"
+            ],
+            "showLog": true
+        }*/
+    ]
+}
