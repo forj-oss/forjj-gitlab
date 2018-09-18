@@ -8,10 +8,14 @@ import (
 	"log"
 	"os"
 	"fmt"
+	"path" //path. ...
+	"io/ioutil" // files function
 
 	"github.com/forj-oss/goforjj"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/sys/unix"
+	"gopkg.in/yaml.v2" //use yaml. ...
+
 )
 
 type GitlabStruct struct{
@@ -22,16 +26,20 @@ type GitlabStruct struct{
 	token 			string
 	group			string
 
-	app *AppInstanceStruct  			//permet l'accès au forjfile
-	Client *gitlab.Client 				//client gitlab cf api gitlab ~ 
-	gitlab_source GitlabSourceStruct 	//urls...
-	gitlabDeploy GitlabDeployStruct     //
+	app 			*AppInstanceStruct  	//permet l'accès au forjfile
+	Client 			*gitlab.Client 			//client gitlab cf api gitlab ~ 
+	gitlab_source 	GitlabSourceStruct 		//urls...
+	gitlabDeploy 	GitlabDeployStruct     	//
+
+	gitFile 		string
+	deployFile 		string
+	sourceFile  	string
 
 }
 
 type GitlabSourceStruct struct{
 	goforjj.PluginService `,inline` //base url
-	ProdGroup string `yaml:"production-group-name, omitempty"`
+	ProdGroup string `yaml:"production-group-name"`//`yaml:"production-group-name, omitempty"`
 }
 
 type GitlabDeployStruct struct{
@@ -47,11 +55,16 @@ type GitlabDeployStruct struct{
 
 type ProjectStruct struct {
 	Name 			string
-	Flow 			string
-	Description 	string
-	Disabled 		bool
-	IssueTracker 	bool 
-	Users 			map[string]string
+	Flow 			string 				`yaml:",omitempty"`
+	Description 	string 				`yaml:",omitempty"`
+	Disabled 		bool				`yaml:",omitempty"`
+	IssueTracker 	bool 				`yaml:"issue_tracker,omitempty"`
+	Users 			map[string]string 	`yaml:",omitempty"`
+	//Groups
+
+	exist 			bool 				`yaml:",omitempty"`
+	remotes 		map[string]goforjj.PluginRepoRemoteUrl
+	branchConnect 	map[string]string 	
 	//...
 }
 
@@ -132,20 +145,48 @@ func (gls *GitlabStruct) gitlab_connect(server string, ret *goforjj.PluginData) 
 	return gls.Client
 }
 
-func (gls *GitlabStruct) projects_exists (ret *goforjj.PluginData) (err error) {
-	client := gls.Client.Projects
+func (gls *GitlabStruct) projects_exists(ret *goforjj.PluginData) (err error) {
+	clientProjects := gls.Client.Projects
+	client, _, err := gls.Client.Users.CurrentUser()
 	
 	//loop
 	for name, project_data := range gls.gitlabDeploy.Projects{
-		log.Print(client)
-		log.Print(name)
-		log.Print(project_data)
+		/*log.Print(clientProjects)
+		log.Print(name)*/
+		//log.Print(project_data)
+
+		URLEncPathProject := client.Username + "/" + name // UserName/ProjectName
+		
+		if found_project, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
+			//log.Print(found_repo)
+			if err == nil && name == gls.app.ForjjInfra {
+				err = fmt.Errorf("Infra projects '%s' already exist in gitlab server.", name)
+			}
+			project_data.exist = true
+			if project_data.remotes == nil{
+				project_data.remotes = make(map[string]goforjj.PluginRepoRemoteUrl)
+				project_data.branchConnect = make(map[string]string)
+			}
+			project_data.remotes["origin"] = goforjj.PluginRepoRemoteUrl{
+				Ssh: found_project.SSHURLToRepo,
+				Url: found_project.HTTPURLToRepo,
+			}
+			project_data.branchConnect["master"] = "origin/master"
+		}
+		ret.Repos[name] = goforjj.PluginRepo{ //Project ?
+			Name: 		project_data.Name,
+			Exist: 		project_data.exist,
+			Remotes: 		project_data.remotes,
+			BranchConnect: 		project_data.branchConnect,
+			//Owner: 		project_data.Owner,
+		}
+
 	}
 
 	return
 }
 
-func (r *RepoInstanceStruct) IsValid (repo_name string, ret *goforjj.PluginData) (valid bool){ // /!\ change struct (project)
+func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){ // /!\ change struct (project)
 	if r.Name == "" {
 		ret.Errorf("Invalid project '%s'. Name is empty.", repo_name)
 		return
@@ -166,7 +207,7 @@ func (gls *GitlabStruct) DefineRepoUrls(name string) (upstream goforjj.PluginRep
 	return
 }
 
-func (r *ProjectStruct) set( project *RepoInstanceStruct) *ProjectStruct{
+func (r *ProjectStruct) set(project *RepoInstanceStruct) *ProjectStruct{
 	if r == nil {
 		r = new(ProjectStruct)
 	}
@@ -188,7 +229,7 @@ func (gls *GitlabStruct) SetProject(project *RepoInstanceStruct, isInfra, isDepl
 	gls.gitlabDeploy.Projects[project.Name] = r
 }
 
-func (gls *GitlabStruct) create_yaml_data (req *CreateReq, ret *goforjj.PluginData) error{
+func (gls *GitlabStruct) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
 	if gls.gitlab_source.Urls == nil{
 		return fmt.Errorf("Internal Error. Urls was not set")
 	}
@@ -225,7 +266,7 @@ func (gls *GitlabStruct) create_yaml_data (req *CreateReq, ret *goforjj.PluginDa
 	return nil
 }
 
-func (req *CreateReq) InitGroup (gls *GitlabStruct) (ret bool) {
+func (req *CreateReq) InitGroup(gls *GitlabStruct) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
 		gls.SetGroup(app)
 		ret = true
@@ -233,7 +274,7 @@ func (req *CreateReq) InitGroup (gls *GitlabStruct) (ret bool) {
 	return
 }
 
-func (gls *GitlabStruct) SetGroup (fromApp AppInstanceStruct) {
+func (gls *GitlabStruct) SetGroup(fromApp AppInstanceStruct) {
 	if group := fromApp.Group; group == ""{
 		gls.gitlabDeploy.Group =fromApp.ForjjGroup
 	} else {
@@ -247,6 +288,70 @@ func (gls *GitlabStruct) SetGroup (fromApp AppInstanceStruct) {
 	gls.gitlab_source.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
+func (fls *GitlabStruct) save_yaml(in interface{}, file string) (Updated bool, _ error){
+	d, err := yaml.Marshal(in)
+	if err != nil {
+		return false, fmt.Errorf("Unable to encode gitlab data in yaml. %s", err)
+	}
+
+	if d_before, err := ioutil.ReadFile(file); err != nil{
+		Updated = true
+	} else {
+		Updated = (string(d) != string(d_before))
+	}
+	
+	if !Updated {
+		return
+	}
+	if err = ioutil.WriteFile(file, d, 0644); err != nil {
+		return false, fmt.Errorf("Unable to save '%s'. %s", file, err)
+	}
+	return
+}
+
+func (gls *GitlabStruct) checkSourcesExistence(when string) (err error){
+	log.Print("Checking Infrastructure code existence.")
+	sourceProject := gls.sourceMount
+	sourcePath := path.Join(sourceProject, gls.instance)
+	gls.sourceFile = path.Join(sourcePath, gitlab_file)
+
+	deployProject := path.Join(gls.deployMount, gls.deployTo)
+	deployBase := path.Join(deployProject, gls.instance)
+
+	gls.deployFile = path.Join(deployBase, gitlab_file)
+
+	gls.gitFile = path.Join(gls.instance, gitlab_file)
+
+	switch when {
+	case "create":
+		if _, err := os.Stat(sourcePath); err != nil{
+			if err = os.MkdirAll(sourcePath, 0755); err != nil{
+				return fmt.Errorf("Unable to create '%s'. %s", sourcePath, err)
+			}
+		}
+
+		if _, err := os.Stat(deployProject); err != nil{
+			return fmt.Errorf("Unable to create '%s'. Forjj must create it. %s", deployProject, err)
+		}
+
+		if _, err := os.Stat(gls.sourceFile); err == nil{
+			return fmt.Errorf("Unable to create the gitlab configuration which already exist.\nUse 'update' to update it "+"(or update %s), and 'maintain' to update your github service according to his configuration.",path.Join(gls.instance, gitlab_file))
+		}
+
+		if _, err := os.Stat(deployBase); err != nil{
+			if err = os.Mkdir(deployBase, 0755); err != nil{
+				return fmt.Errorf("Unable to create '%s'. %s", deployBase, err)
+			}
+		}
+		return
+	
+	case "update":
+		log.Printf("TODO UPDATE")
+	}
+	return
+}
+
+
 // Do creating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -259,11 +364,11 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	//Get instance name
 	instance := req.Forj.ForjjInstanceName
 
-	log.Printf(ret.StatusAdd("instance: " + instance))
+	/*log.Printf(ret.StatusAdd("instance: " + instance))
 	log.Println(ret.StatusAdd("token: " + req.Objects.App[instance].Token))
 	log.Println(ret.StatusAdd("Source Mount: " + req.Forj.ForjjSourceMount))
 	log.Println(ret.StatusAdd("Deploy Mount: " + req.Forj.ForjjDeployMount))
-	log.Println(ret.StatusAdd("Deployto: " + req.Forj.ForjjDeploymentEnv))
+	log.Println(ret.StatusAdd("Deployto: " + req.Forj.ForjjDeploymentEnv))*/
 	
 
 	//init GitlabStruct
@@ -283,7 +388,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	check["token"] = true
 	check["source"] = true
 
-	//ensure source path is writeable, token isn't empty
+	//ensure source path is writeable && token isn't empty
 	if gls.verify_req_fails(ret, check){
 		return
 	}
@@ -307,12 +412,12 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	/*log.Println(ret.StatusAdd("Org: " + gls.app.ForjjOrganization))
 	log.Println(ret.StatusAdd("Org: " + gls.app.Organization))*/
 
-	// InitGroup 
+	// Init Group of project
 	if !req.InitGroup(&gls){
 		ret.Errorf("Internal Error. Unable to define the group.")
 	}
 
-	//Create yaml data
+	//Create yaml data for maintain function
 	if err := gls.create_yaml_data(req, ret); err != nil {
 		ret.Errorf("Unable to create. %s",err)
 		return
@@ -324,8 +429,45 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 		return 419
 	}
 
-	//finalisation
+	//CheckSourceExistence
+	if err := gls.checkSourcesExistence("create"); err != nil{
+		ret.Errorf("%s\nUnable to 'create' your forge", err)
+		return
+	}
+	//
+	ret.StatusAdd("Environment checked. Ready to be created.")
 
+	//Path in ctxt git
+	gitFile := path.Join(gls.instance, gitlab_file)
+
+	//Save gitlab source
+	if _, err := gls.save_yaml(&gls.gitlab_source, gls.sourceFile); err != nil {
+		ret.Errorf("%s", err)
+		return
+	}
+
+	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.sourceMount))
+
+	//Save gitlab deploy
+	if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
+		ret.Errorf("%s", err)
+		return
+	}
+
+	log.Printf(ret.StatusAdd("Configuration saved in deploy project '%s' (%s).", gitFile, path.Join(gls.deployMount, gls.deployTo)))
+
+	//Build final post answer
+	for k, v := range gls.gitlab_source.Urls{
+		ret.Services.Urls[k] = v
+	}
+
+	//API by forjj
+	ret.Services.Urls["api_url"] = gls.gitlab_source.Urls["gitlab-base-url"]
+
+	ret.CommitMessage = fmt.Sprint("Gitlab configuration created.")
+
+	ret.AddFile(goforjj.FilesSource, gitFile)
+	ret.AddFile(goforjj.FilesDeploy, gitFile)
 
 	
 	log.Println(ret.StatusAdd("end"))
