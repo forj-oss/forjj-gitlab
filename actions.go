@@ -14,7 +14,7 @@ import (
 	"github.com/forj-oss/goforjj"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/sys/unix"
-	"gopkg.in/yaml.v2" //use yaml. ...
+	"gopkg.in/yaml.v2" //use yaml.
 
 )
 
