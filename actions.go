@@ -8,13 +8,13 @@ import (
 	"log"
 	"os"
 	"fmt"
-	"path" //path. ...
-	"io/ioutil" // files function
+	"path"
+	"io/ioutil"
 
 	"github.com/forj-oss/goforjj"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/sys/unix"
-	"gopkg.in/yaml.v2" //use yaml.
+	"gopkg.in/yaml.v2"
 
 )
 
@@ -26,14 +26,22 @@ type GitlabStruct struct{
 	token 			string
 	group			string
 
-	app 			*AppInstanceStruct  	//permet l'accès au forjfile
-	Client 			*gitlab.Client 			//client gitlab cf api gitlab ~ 
+	app 			*AppInstanceStruct  	//forjfile access
+	Client 			*gitlab.Client 			//gitlab client ~ api gitlab
 	gitlab_source 	GitlabSourceStruct 		//urls...
 	gitlabDeploy 	GitlabDeployStruct     	//
 
 	gitFile 		string
 	deployFile 		string
 	sourceFile  	string
+
+	//maintain
+	workspace_mount string
+	maintain_ctxt 	bool
+	force 			bool
+
+	new_forge 		bool
+
 
 }
 
@@ -66,6 +74,12 @@ type ProjectStruct struct {
 	remotes 		map[string]goforjj.PluginRepoRemoteUrl
 	branchConnect 	map[string]string 	
 	//...
+
+	//maintain
+	Infra 			bool 				`yaml:",omitempty"`
+	Role 			string 				`yaml:",omitempty"`
+	IsDeployable 	bool
+
 }
 
 // Linux support only
@@ -138,7 +152,7 @@ func (gls *GitlabStruct) gitlab_connect(server string, ret *goforjj.PluginData) 
 		return nil
 	} else {
 		ret.StatusAdd("Connection successful.")
-		/*g.user =  */
+		//g.user = ...
 	}
 
 
@@ -146,19 +160,15 @@ func (gls *GitlabStruct) gitlab_connect(server string, ret *goforjj.PluginData) 
 }
 
 func (gls *GitlabStruct) projects_exists(ret *goforjj.PluginData) (err error) {
-	clientProjects := gls.Client.Projects
-	client, _, err := gls.Client.Users.CurrentUser()
+	clientProjects := gls.Client.Projects // Projects of user
+	client, _, err := gls.Client.Users.CurrentUser() // Get current user
 	
 	//loop
 	for name, project_data := range gls.gitlabDeploy.Projects{
-		/*log.Print(clientProjects)
-		log.Print(name)*/
-		//log.Print(project_data)
 
 		URLEncPathProject := client.Username + "/" + name // UserName/ProjectName
-		
+		//Get X repo, if find --> err
 		if found_project, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
-			//log.Print(found_repo)
 			if err == nil && name == gls.app.ForjjInfra {
 				err = fmt.Errorf("Infra projects '%s' already exist in gitlab server.", name)
 			}
@@ -173,7 +183,7 @@ func (gls *GitlabStruct) projects_exists(ret *goforjj.PluginData) (err error) {
 			}
 			project_data.branchConnect["master"] = "origin/master"
 		}
-		ret.Repos[name] = goforjj.PluginRepo{ //Project ?
+		ret.Repos[name] = goforjj.PluginRepo{ //Project
 			Name: 		project_data.Name,
 			Exist: 		project_data.exist,
 			Remotes: 		project_data.remotes,
@@ -186,7 +196,7 @@ func (gls *GitlabStruct) projects_exists(ret *goforjj.PluginData) (err error) {
 	return
 }
 
-func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){ // /!\ change struct (project)
+func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){
 	if r.Name == "" {
 		ret.Errorf("Invalid project '%s'. Name is empty.", repo_name)
 		return
@@ -261,7 +271,7 @@ func (gls *GitlabStruct) create_yaml_data(req *CreateReq, ret *goforjj.PluginDat
 
 	log.Printf("forjj-gitlab manages %d project(s).", len(gls.gitlabDeploy.Projects))
 
-	//more ...
+	//more todo...
 
 	return nil
 }
@@ -288,7 +298,7 @@ func (gls *GitlabStruct) SetGroup(fromApp AppInstanceStruct) {
 	gls.gitlab_source.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
-func (fls *GitlabStruct) save_yaml(in interface{}, file string) (Updated bool, _ error){
+func (gls *GitlabStruct) save_yaml(in interface{}, file string) (Updated bool, _ error){
 	d, err := yaml.Marshal(in)
 	if err != nil {
 		return false, fmt.Errorf("Unable to encode gitlab data in yaml. %s", err)
@@ -351,6 +361,55 @@ func (gls *GitlabStruct) checkSourcesExistence(when string) (err error){
 	return
 }
 
+//maintain fcts
+func (gls *GitlabStruct) load_yaml(file string) error {
+	d, err := ioutil.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("Unable to load '%s'. %s", file, err)
+	}
+
+	err = yaml.Unmarshal(d, &gls.gitlabDeploy)
+
+	if err != nil {
+		return fmt.Errorf("Unable to decode gitlab data in yaml. %s", err)
+	}
+
+	return nil
+}
+
+func (gls *GitlabStruct) ensure_group_exists(ret *goforjj.PluginData) (s bool){
+	//TODO
+	return																   
+}
+
+func (gls *GitlabStruct) IsNewForge(ret *goforjj.PluginData) (_ bool){
+
+	ClientProjects := gls.Client.Projects
+
+	for name, project  := range gls.gitlabDeploy.Projects{
+		if !project.Infra{
+			continue
+		}
+		client, _, _ := gls.Client.Users.CurrentUser() //!\\ manage err
+		URLEncPathProject := client.Username + "/" + name
+		if _, resp, e := ClientProjects.GetProject(URLEncPathProject); e!= nil && resp == nil {
+			ret.Errorf("Unable to identify the infra project. Unknown issue: %s",e)
+			return
+		} else {
+			gls.new_forge = (resp.StatusCode != 200)
+		}
+		return true
+	}
+
+	ret.Errorf("Unable to identify the infra repository. At least, one repo must be identified with "+"`%s` in %s. You can use Forjj update to fix this.","Infra: true", "github")
+	return
+}
+
+func (r *ProjectStruct) ensure_exists(gls *GitlabStruct, ret *goforjj.PluginData) /*error*/ {
+	//test existence
+	//TODO
+}
+
 
 // Do creating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
@@ -358,8 +417,6 @@ func (gls *GitlabStruct) checkSourcesExistence(when string) (err error){
 //
 // By default, if httpCode is not set (ie equal to 0), the function caller will set it to 422 in case of errors (error_message != "") or 200
 func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCode int) {
-
-	//log.Printf(ret.StatusAdd(""))
 
 	//Get instance name
 	instance := req.Forj.ForjjInstanceName
@@ -434,7 +491,6 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 		ret.Errorf("%s\nUnable to 'create' your forge", err)
 		return
 	}
-	//
 	ret.StatusAdd("Environment checked. Ready to be created.")
 
 	//Path in ctxt git
@@ -480,7 +536,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 //
 // By default, if httpCode is not set (ie equal to 0), the function caller will set it to 422 in case of errors (error_message != "") or 200
 func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCode int) {
-	var p *GitlabPlugin
+	/*var p *GitlabPlugin
 
 	// This is where you shoud write your Update code. Following lines are typical code for a basic plugin.
 	if pr, ok := req.check_source_existence(ret); !ok {
@@ -505,7 +561,7 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 
 	if !p.save_yaml(ret, instance) {
 		return
-	}
+	}*/
 	return
 }
 
@@ -515,13 +571,72 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 //
 // By default, if httpCode is not set (ie equal to 0), the function caller will set it to 422 in case of errors (error_message != "") or 200
 func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (httpCode int) {
-	// This is where you shoud write your Maintain code. Following lines are typical code for a basic plugin.
-	if !req.check_source_existence(ret) {
+	instance := req.Forj.ForjjInstanceName
+
+	var gls GitlabStruct
+	if a, found := req.Objects.App[instance]; !found {
+		ret.Errorf("Invalid request. Missing Objects/App/%s", instance)
+		return
+	}else{
+		gls = GitlabStruct{
+			deployMount: 		req.Forj.ForjjDeployMount,
+			workspace_mount: 	req.Forj.ForjjWorkspaceMount,
+			token: 				a.Token,
+			maintain_ctxt: 		true,
+			force: 				req.Forj.Force == "true",
+		}
+	}
+	
+	check := make(map[string]bool)
+	check["token"] = true
+	check["workspace"] = true
+	check["deploy"] = true
+
+	if gls.verify_req_fails(ret, check) {
 		return
 	}
 
-	if !req.instantiate(ret) {
+	confFile := path.Join(gls.deployMount, req.Forj.ForjjDeploymentEnv, instance, gitlab_file)
+
+	//read yaml file
+	if err := gls.load_yaml(confFile); err != nil{
+		ret.Errorf("%s", err)
 		return
 	}
+	
+	if gls.gitlab_connect("", ret) == nil{
+		return
+	}
+
+	if !gls.ensure_group_exists(ret){
+		return
+	}
+
+	if !gls.IsNewForge(ret){
+		return
+	}
+
+	if gls.gitlabDeploy.NoProjects{
+		log.Printf(ret.StatusAdd("Projects maintained limited to your infra project"))
+	}
+
+	//loop verif
+	for name, project_data := range gls.gitlabDeploy.Projects{
+		if !project_data.Infra && gls.gitlabDeploy.NoProjects{
+			log.Printf(ret.StatusAdd("Project ignored: %s", name))
+			continue
+		}
+		if project_data.Role == "infra" && !project_data.IsDeployable{
+			log.Printf(ret.StatusAdd("Project ignored: %s - Infra project owned by '%s'", name, gls.gitlabDeploy.ProdGroup))
+			continue
+		}
+		/*if err := project_data.ensure_exists(&gls, ret); err != nil{
+			return
+		}*/
+		//...
+		log.Printf(ret.StatusAdd("Project maintained: %s", name))
+	}
+	
+
 	return
 }
