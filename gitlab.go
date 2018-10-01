@@ -82,9 +82,55 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 	return
 }
 
+func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
+	//gl_url := ""
+	if gls.gitlab_source.Urls == nil {
+		gls.gitlab_source.Urls = make(map[string]string)
+	}
+	//...
+	return //TODO
+}
+
 func (r *ProjectStruct) ensure_exists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
 	//test existence
 	//TODO
+}
+
+func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
+	clientProjects := gls.Client.Projects // Projects of user
+	client, _, err := gls.Client.Users.CurrentUser() // Get current user
+	
+	//loop
+	for name, project_data := range gls.gitlabDeploy.Projects{
+
+		URLEncPathProject := client.Username + "/" + name // UserName/ProjectName
+		//Get X repo, if find --> err
+		if found_project, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
+			if err == nil && name == gls.app.ForjjInfra {
+				err = fmt.Errorf("Infra projects '%s' already exist in gitlab server.", name)
+			}
+			project_data.exist = true
+			if project_data.remotes == nil{
+				project_data.remotes = make(map[string]goforjj.PluginRepoRemoteUrl)
+				project_data.branchConnect = make(map[string]string)
+			}
+			project_data.remotes["origin"] = goforjj.PluginRepoRemoteUrl{
+				Ssh: found_project.SSHURLToRepo,
+				Url: found_project.HTTPURLToRepo,
+			}
+			project_data.branchConnect["master"] = "origin/master"
+		}
+		ret.Repos[name] = goforjj.PluginRepo{ //Project
+			Name: 		project_data.Name,
+			Exist: 		project_data.exist,
+			Remotes: 		project_data.remotes,
+			BranchConnect: 		project_data.branchConnect,
+			//Owner: 		project_data.Owner,
+		}
+
+	}
+
+	return
 }
 
 func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){

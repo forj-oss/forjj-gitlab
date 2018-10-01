@@ -18,7 +18,7 @@ import (
 
 )
 
-type ProjectStruct struct {
+/*type ProjectStruct struct {
 	Name 			string
 	Flow 			string 				`yaml:",omitempty"`
 	Description 	string 				`yaml:",omitempty"`
@@ -37,18 +37,18 @@ type ProjectStruct struct {
 	Role 			string 				`yaml:",omitempty"`
 	IsDeployable 	bool
 
-}
+}*/
 
-func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
+/*func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
 	//gl_url := ""
 	if gls.gitlab_source.Urls == nil {
 		gls.gitlab_source.Urls = make(map[string]string)
 	}
 	//...
 	return //TODO
-}
+}*/
 
-func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
+/*func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
 	clientProjects := gls.Client.Projects // Projects of user
 	client, _, err := gls.Client.Users.CurrentUser() // Get current user
 	
@@ -83,9 +83,9 @@ func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
 	}
 
 	return
-}
+}*/
 
-func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){
+/*func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){
 	if r.Name == "" {
 		ret.Errorf("Invalid project '%s'. Name is empty.", repo_name)
 		return
@@ -96,39 +96,39 @@ func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) 
 	}
 	valid = true
 	return
-}
+}*/
 
-func (gls *GitlabPlugin) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
+/*func (gls *GitlabPlugin) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
 	upstream = goforjj.PluginRepoRemoteUrl{
 		Ssh: gls.gitlab_source.Urls["gitlab-ssh"] + gls.gitlabDeploy.Group + "/" + name + ".git",
 		Url: gls.gitlab_source.Urls["gitlab-url"] + "/" + gls.gitlabDeploy.Group + "/" + name,
 	}
 	return
-}
+}*/
 
-func (r *ProjectStruct) set(project *RepoInstanceStruct) *ProjectStruct{
+/*func (r *ProjectStruct) set(project *RepoInstanceStruct) *ProjectStruct{
 	if r == nil {
 		r = new(ProjectStruct)
 	}
 	r.Name = project.Name
 	return r
-}
+}*/
 
-func (gls *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) { //SetRepo
+/*func (gls *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) { //SetRepo
 	//upstream := gls.DefineRepoUrls(project.Name)
 
 	/*owner := gls.gitlabDeploy.Group
 	if isInfra {
 		owner = gls.gitlabDeploy.ProdGroup
-	}*/
+	}*//*
 
 	//set it, found or not
 	r := ProjectStruct{}
 	r.set(project)
 	gls.gitlabDeploy.Projects[project.Name] = r
-}
+}*/
 
-func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
+/*func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
 	if gls.gitlab_source.Urls == nil{
 		return fmt.Errorf("Internal Error. Urls was not set")
 	}
@@ -163,7 +163,7 @@ func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginDat
 	//more todo...
 
 	return nil
-}
+}*/
 
 
 
