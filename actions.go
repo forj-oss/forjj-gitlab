@@ -9,16 +9,16 @@ import (
 	"os"
 	"fmt"
 	"path"
-	"io/ioutil"
+	//"io/ioutil"
 
 	"github.com/forj-oss/goforjj"
-	"github.com/xanzy/go-gitlab"
+	//"github.com/xanzy/go-gitlab"
 	"golang.org/x/sys/unix"
-	"gopkg.in/yaml.v2"
+	//"gopkg.in/yaml.v2"
 
 )
 
-type GitlabStruct struct{
+/*type GitlabStruct struct{
 	sourceMount 	string
 	deployMount 	string
 	instance 		string
@@ -43,14 +43,14 @@ type GitlabStruct struct{
 	new_forge 		bool
 
 
-}
+}*/
 
-type GitlabSourceStruct struct{
+/*type GitlabSourceStruct struct{
 	goforjj.PluginService `,inline` //base url
 	ProdGroup string `yaml:"production-group-name"`//`yaml:"production-group-name, omitempty"`
-}
+}*/
 
-type GitlabDeployStruct struct{
+/*type GitlabDeployStruct struct{
 	goforjj.PluginService 	`yaml:",inline"` //urls
 	Projects 				map[string]ProjectStruct // projects managed in gitlab
 	NoProjects				bool `yaml:",omitempty"`
@@ -59,7 +59,7 @@ type GitlabDeployStruct struct{
 	GroupDisplayName 		string
 	//...
 
-}
+}*/
 
 type ProjectStruct struct {
 	Name 			string
@@ -109,7 +109,7 @@ func reqCheckPath(name, path string, ret *goforjj.PluginData) bool {
 	return false
 }
 
-func (gls *GitlabStruct) verify_req_fails(ret *goforjj.PluginData, check map[string]bool) bool{
+func (gls *GitlabPlugin) verify_req_fails(ret *goforjj.PluginData, check map[string]bool) bool{
 	if v, ok := check["source"]; ok && v {
 		if reqCheckPath("source (forjj-source-mount)", gls.sourceMount, ret){
 			return true
@@ -126,7 +126,7 @@ func (gls *GitlabStruct) verify_req_fails(ret *goforjj.PluginData, check map[str
 	return false
 }
 
-func (gls *GitlabStruct) gitlab_set_url(server string) (err error) {
+func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
 	//gl_url := ""
 	if gls.gitlab_source.Urls == nil {
 		gls.gitlab_source.Urls = make(map[string]string)
@@ -135,7 +135,7 @@ func (gls *GitlabStruct) gitlab_set_url(server string) (err error) {
 	return //TODO
 }
 
-func (gls *GitlabStruct) gitlab_connect(server string, ret *goforjj.PluginData) *gitlab.Client {
+/*func (gls *GitlabPlugin) gitlab_connect(server string, ret *goforjj.PluginData) *gitlab.Client {
 	//
 	gls.Client = gitlab.NewClient(nil, gls.token)
 
@@ -157,9 +157,9 @@ func (gls *GitlabStruct) gitlab_connect(server string, ret *goforjj.PluginData) 
 
 
 	return gls.Client
-}
+}*/
 
-func (gls *GitlabStruct) projects_exists(ret *goforjj.PluginData) (err error) {
+func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
 	clientProjects := gls.Client.Projects // Projects of user
 	client, _, err := gls.Client.Users.CurrentUser() // Get current user
 	
@@ -209,7 +209,7 @@ func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) 
 	return
 }
 
-func (gls *GitlabStruct) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
+func (gls *GitlabPlugin) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
 	upstream = goforjj.PluginRepoRemoteUrl{
 		Ssh: gls.gitlab_source.Urls["gitlab-ssh"] + gls.gitlabDeploy.Group + "/" + name + ".git",
 		Url: gls.gitlab_source.Urls["gitlab-url"] + "/" + gls.gitlabDeploy.Group + "/" + name,
@@ -225,7 +225,7 @@ func (r *ProjectStruct) set(project *RepoInstanceStruct) *ProjectStruct{
 	return r
 }
 
-func (gls *GitlabStruct) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) { //SetRepo
+func (gls *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) { //SetRepo
 	//upstream := gls.DefineRepoUrls(project.Name)
 
 	/*owner := gls.gitlabDeploy.Group
@@ -239,7 +239,7 @@ func (gls *GitlabStruct) SetProject(project *RepoInstanceStruct, isInfra, isDepl
 	gls.gitlabDeploy.Projects[project.Name] = r
 }
 
-func (gls *GitlabStruct) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
+func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
 	if gls.gitlab_source.Urls == nil{
 		return fmt.Errorf("Internal Error. Urls was not set")
 	}
@@ -276,7 +276,7 @@ func (gls *GitlabStruct) create_yaml_data(req *CreateReq, ret *goforjj.PluginDat
 	return nil
 }
 
-func (req *CreateReq) InitGroup(gls *GitlabStruct) (ret bool) {
+func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
 		gls.SetGroup(app)
 		ret = true
@@ -284,7 +284,7 @@ func (req *CreateReq) InitGroup(gls *GitlabStruct) (ret bool) {
 	return
 }
 
-func (gls *GitlabStruct) SetGroup(fromApp AppInstanceStruct) {
+func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 	if group := fromApp.Group; group == ""{
 		gls.gitlabDeploy.Group =fromApp.ForjjGroup
 	} else {
@@ -298,7 +298,7 @@ func (gls *GitlabStruct) SetGroup(fromApp AppInstanceStruct) {
 	gls.gitlab_source.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
-func (gls *GitlabStruct) save_yaml(in interface{}, file string) (Updated bool, _ error){
+/*func (gls *GitlabPlugin) save_yaml(in interface{}, file string) (Updated bool, _ error){
 	d, err := yaml.Marshal(in)
 	if err != nil {
 		return false, fmt.Errorf("Unable to encode gitlab data in yaml. %s", err)
@@ -317,9 +317,9 @@ func (gls *GitlabStruct) save_yaml(in interface{}, file string) (Updated bool, _
 		return false, fmt.Errorf("Unable to save '%s'. %s", file, err)
 	}
 	return
-}
+}*/
 
-func (gls *GitlabStruct) checkSourcesExistence(when string) (err error){
+func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 	log.Print("Checking Infrastructure code existence.")
 	sourceProject := gls.sourceMount
 	sourcePath := path.Join(sourceProject, gls.instance)
@@ -362,7 +362,7 @@ func (gls *GitlabStruct) checkSourcesExistence(when string) (err error){
 }
 
 //maintain fcts
-func (gls *GitlabStruct) load_yaml(file string) error {
+/*func (gls *GitlabPlugin) load_yaml(file string) error {
 	d, err := ioutil.ReadFile(file)
 	if err != nil {
 		return fmt.Errorf("Unable to load '%s'. %s", file, err)
@@ -375,14 +375,14 @@ func (gls *GitlabStruct) load_yaml(file string) error {
 	}
 
 	return nil
-}
+}*/
 
-func (gls *GitlabStruct) ensure_group_exists(ret *goforjj.PluginData) (s bool){
+func (gls *GitlabPlugin) ensure_group_exists(ret *goforjj.PluginData) (s bool){
 	//TODO
 	return																   
 }
 
-func (gls *GitlabStruct) IsNewForge(ret *goforjj.PluginData) (_ bool){
+func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 
 	ClientProjects := gls.Client.Projects
 
@@ -405,7 +405,7 @@ func (gls *GitlabStruct) IsNewForge(ret *goforjj.PluginData) (_ bool){
 	return
 }
 
-func (r *ProjectStruct) ensure_exists(gls *GitlabStruct, ret *goforjj.PluginData) /*error*/ {
+func (r *ProjectStruct) ensure_exists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
 	//test existence
 	//TODO
 }
@@ -428,8 +428,8 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Println(ret.StatusAdd("Deployto: " + req.Forj.ForjjDeploymentEnv))*/
 	
 
-	//init GitlabStruct
-	gls := GitlabStruct{
+	//init GitlabPlugin
+	gls := GitlabPlugin{
 		sourceMount: 	req.Forj.ForjjSourceMount,
 		deployMount: 	req.Forj.ForjjDeployMount,
 		instance: 		req.Forj.ForjjInstanceName,
@@ -497,7 +497,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	gitFile := path.Join(gls.instance, gitlab_file)
 
 	//Save gitlab source
-	if _, err := gls.save_yaml(&gls.gitlab_source, gls.sourceFile); err != nil {
+	if _, err := gls.save_yaml(&gls.gitlab_source, gls.sourceFile/*ret, instance*/); err != nil {
 		ret.Errorf("%s", err)
 		return
 	}
@@ -505,10 +505,10 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.sourceMount))
 
 	//Save gitlab deploy
-	if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
+	/*if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
 		ret.Errorf("%s", err)
 		return
-	}
+	}*/
 
 	log.Printf(ret.StatusAdd("Configuration saved in deploy project '%s' (%s).", gitFile, path.Join(gls.deployMount, gls.deployTo)))
 
@@ -573,12 +573,12 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (httpCode int) {
 	instance := req.Forj.ForjjInstanceName
 
-	var gls GitlabStruct
+	var gls GitlabPlugin
 	if a, found := req.Objects.App[instance]; !found {
 		ret.Errorf("Invalid request. Missing Objects/App/%s", instance)
 		return
 	}else{
-		gls = GitlabStruct{
+		gls = GitlabPlugin{
 			deployMount: 		req.Forj.ForjjDeployMount,
 			workspace_mount: 	req.Forj.ForjjWorkspaceMount,
 			token: 				a.Token,
@@ -599,8 +599,8 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 	confFile := path.Join(gls.deployMount, req.Forj.ForjjDeploymentEnv, instance, gitlab_file)
 
 	//read yaml file
-	if err := gls.load_yaml(confFile); err != nil{
-		ret.Errorf("%s", err)
+	if err := gls.load_yaml(confFile/*ret, instance*/); err != nil{
+		ret.Errorf("%s"/*, err*/)
 		return
 	}
 	
