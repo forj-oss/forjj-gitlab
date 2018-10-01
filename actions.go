@@ -505,10 +505,10 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.sourceMount))
 
 	//Save gitlab deploy
-	/*if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
+	if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
 		ret.Errorf("%s", err)
 		return
-	}*/
+	}
 
 	log.Printf(ret.StatusAdd("Configuration saved in deploy project '%s' (%s).", gitFile, path.Join(gls.deployMount, gls.deployTo)))
 
