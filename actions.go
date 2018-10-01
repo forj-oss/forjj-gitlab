@@ -13,7 +13,7 @@ import (
 
 	"github.com/forj-oss/goforjj"
 	//"github.com/xanzy/go-gitlab"
-	"golang.org/x/sys/unix"
+	//"golang.org/x/sys/unix"
 	//"gopkg.in/yaml.v2"
 
 )
@@ -83,7 +83,7 @@ type ProjectStruct struct {
 }
 
 // Linux support only
-func IsWritable(path string) (res bool) {
+/*func IsWritable(path string) (res bool) {
 	return unix.Access(path, unix.W_OK) == nil
 }
 
@@ -124,7 +124,7 @@ func (gls *GitlabPlugin) verify_req_fails(ret *goforjj.PluginData, check map[str
 	}
 
 	return false
-}
+}*/
 
 func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
 	//gl_url := ""
