@@ -65,7 +65,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Println("Checking gitlab connection.")
 	ret.StatusAdd("Connect to gitlab...")
 
-	if git := gls.gitlab_connect("myserv", ret); git == nil{
+	if git := gls.gitlab_connect("X"/*"myserv"*/, ret); git == nil{
 		return
 	}
 
