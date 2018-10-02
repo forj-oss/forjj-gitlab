@@ -87,6 +87,15 @@ func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
 	if gls.gitlab_source.Urls == nil {
 		gls.gitlab_source.Urls = make(map[string]string)
 	}
+	/*if !gls.maintain_ctxt {
+		if server == "" /* || ? */ {
+			gls.gitlab_source.Urls["gitlab-base-url"] = "https://gitlab.com/api/v4/"
+			gls.gitlab_source.Urls["gitlab-url"] = "https://gitlab.com"
+			gls.gitlab_source.Urls["gitlab-ssh"] = "git@gitlab.com:"
+		} else {
+
+		}
+	}*/
 	//...
 	return //TODO
 }
