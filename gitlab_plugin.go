@@ -14,10 +14,10 @@ import (
 )
 
 type GitlabPlugin struct {
-	yaml        YamlGitlab
-	source_path string
+	yaml        	YamlGitlab
+	source_path 	string
 
-	sourceMount 	string
+	//sourceMount 	string
 	deployMount 	string
 	instance 		string
 	deployTo 		string

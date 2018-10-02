@@ -33,7 +33,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	//init GitlabPlugin
 	gls := GitlabPlugin{
-		sourceMount: 	req.Forj.ForjjSourceMount,
+		source_path: 	req.Forj.ForjjSourceMount, // ! \\
 		deployMount: 	req.Forj.ForjjDeployMount,
 		instance: 		req.Forj.ForjjInstanceName,
 		deployTo: 		req.Forj.ForjjDeploymentEnv,
@@ -105,7 +105,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 		return
 	}
 
-	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.sourceMount))
+	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.source_path)) // ! \\
 
 	//Save gitlab deploy
 	if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
