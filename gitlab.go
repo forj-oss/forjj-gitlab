@@ -83,21 +83,42 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 }
 
 func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
-	//gl_url := ""
+	gl_url := ""
+
 	if gls.gitlab_source.Urls == nil {
 		gls.gitlab_source.Urls = make(map[string]string)
 	}
-	/*if !gls.maintain_ctxt {
-		if server == "" /* || ? */ {
-			gls.gitlab_source.Urls["gitlab-base-url"] = "https://gitlab.com/api/v4/"
+
+	if !gls.maintain_ctxt {
+		if server == "" { // || ? 
+			gls.gitlab_source.Urls["gitlab-base-url"] = "https://gitlab.com/"
 			gls.gitlab_source.Urls["gitlab-url"] = "https://gitlab.com"
 			gls.gitlab_source.Urls["gitlab-ssh"] = "git@gitlab.com:"
 		} else {
-
+			//set from serveur // ! \\ TODO
+			server = "gitlab.com"
+			gl_url = "https://" + server + "/api/v4/"
+			gls.gitlab_source.Urls["gitlab-url"] = "https://gitlab.com"
+			gls.gitlab_source.Urls["gitlab-ssh"] = "git@gitlab.com:"
 		}
-	}*/
-	//...
-	return //TODO
+	} else {
+		//maintain context
+		gls.gitlab_source.Urls = gls.gitlabDeploy.Urls
+		gl_url = gls.gitlab_source.Urls["gitlab-base-url"]
+	}
+
+	if gl_url == ""{
+		return
+	}
+
+	//gls.Client., err = url.Parse(gl_url)
+	err = gls.Client.SetBaseURL(gl_url)
+	
+	if err != nil{
+		return
+	}
+
+	return
 }
 
 func (r *ProjectStruct) ensure_exists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
