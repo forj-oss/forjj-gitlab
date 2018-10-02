@@ -135,7 +135,7 @@ func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
 
 func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 	log.Print("Checking Infrastructure code existence.")
-	sourceProject := gls.sourceMount
+	sourceProject := gls.source_path // ! \\
 	sourcePath := path.Join(sourceProject, gls.instance)
 	gls.sourceFile = path.Join(sourcePath, gitlab_file)
 
