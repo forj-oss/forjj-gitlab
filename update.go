@@ -56,15 +56,19 @@ func addMaintainOptionValue(options map[string]goforjj.PluginOption, option, val
 }
 
 func (gls *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) { //SetRepo
-	//upstream := gls.DefineRepoUrls(project.Name)
+	upstream := gls.DefineRepoUrls(project.Name)
 
-	/*owner := gls.gitlabDeploy.Group
+	owner := gls.gitlabDeploy.Group
 	if isInfra {
 		owner = gls.gitlabDeploy.ProdGroup
-	}*/
+	}
 
 	//set it, found or not
 	r := ProjectStruct{}
-	r.set(project)
+	r.set(project,
+				map[string]goforjj.PluginRepoRemoteUrl{"origin": upstream},
+				map[string]string{"master": "origin/master"},
+				isInfra,
+				isDeployable, owner)
 	gls.gitlabDeploy.Projects[project.Name] = r
 }
