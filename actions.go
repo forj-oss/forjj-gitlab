@@ -33,12 +33,12 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	//init GitlabPlugin
 	gls := GitlabPlugin{
-		sourcePath: 	req.Forj.ForjjSourceMount, // ! \\
+		sourcePath: 	req.Forj.ForjjSourceMount,
 		deployMount: 	req.Forj.ForjjDeployMount,
-		instance: 		req.Forj.ForjjInstanceName,
-		deployTo: 		req.Forj.ForjjDeploymentEnv,
-		token: 			req.Objects.App[instance].Token,
-		group:			req.Objects.App[instance].Group,
+		instance: 	req.Forj.ForjjInstanceName,
+		deployTo: 	req.Forj.ForjjDeploymentEnv,
+		token: 		req.Objects.App[instance].Token,
+		group:		req.Objects.App[instance].Group,
 	}
 
 	log.Printf("Checking parameters : %#v", gls)
