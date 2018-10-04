@@ -29,13 +29,13 @@ type ProjectStruct struct {
 }
 
 //isValid verify name project
-func (r *RepoInstanceStruct) isValid(repo_name string, ret *goforjj.PluginData) (valid bool){
+func (r *RepoInstanceStruct) isValid(repoName string, ret *goforjj.PluginData) (valid bool){
 	if r.Name == "" {
-		ret.Errorf("Invalid project '%s'. Name is empty.", repo_name)
+		ret.Errorf("Invalid project '%s'. Name is empty.", repoName)
 		return
 	}
-	if r.Name != repo_name {
-		ret.Errorf("Invalid project '%s'. Name must be equal to '%s'. But the project name is set to '%s'.", repo_name, repo_name, r.Name)
+	if r.Name != repoName {
+		ret.Errorf("Invalid project '%s'. Name must be equal to '%s'. But the project name is set to '%s'.", repoName, repoName, r.Name)
 		return
 	}
 	valid = true
@@ -43,7 +43,7 @@ func (r *RepoInstanceStruct) isValid(repo_name string, ret *goforjj.PluginData) 
 }
 
 //set (TODO)
-func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]goforjj.PluginRepoRemoteUrl, branchConnect map[string]string, is_infra, IsDeployable bool, owner string) *ProjectStruct{
+func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]goforjj.PluginRepoRemoteUrl, branchConnect map[string]string, isInfra, IsDeployable bool, owner string) *ProjectStruct{
 	if r == nil {
 		r = new(ProjectStruct)
 	}
@@ -53,7 +53,7 @@ func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]gofo
 	//issueTracker
 
 	r.Flow = project.Flow
-	r.Infra = is_infra
+	r.Infra = isInfra
 
 	//r.addUsers(project.Users)
 	//Groups

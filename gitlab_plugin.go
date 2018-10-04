@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//GitlabPlugin main struct
 type GitlabPlugin struct{
 	yaml			YamlGitlab
 	sourcePath		string
