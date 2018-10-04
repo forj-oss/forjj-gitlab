@@ -4,6 +4,7 @@ import(
 	"github.com/forj-oss/goforjj"
 )
 
+//ProjectStruct (TODO)
 type ProjectStruct struct {
 	Name 			string
 	Flow 			string 				`yaml:",omitempty"`
@@ -27,7 +28,8 @@ type ProjectStruct struct {
 
 }
 
-func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) (valid bool){
+//isValid verify name project
+func (r *RepoInstanceStruct) isValid(repo_name string, ret *goforjj.PluginData) (valid bool){
 	if r.Name == "" {
 		ret.Errorf("Invalid project '%s'. Name is empty.", repo_name)
 		return
@@ -40,6 +42,7 @@ func (r *RepoInstanceStruct) IsValid(repo_name string, ret *goforjj.PluginData) 
 	return
 }
 
+//set (TODO)
 func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]goforjj.PluginRepoRemoteUrl, branchConnect map[string]string, is_infra, IsDeployable bool, owner string) *ProjectStruct{
 	if r == nil {
 		r = new(ProjectStruct)
@@ -52,7 +55,7 @@ func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]gofo
 	r.Flow = project.Flow
 	r.Infra = is_infra
 
-	//r.AddUsers(project.Users)
+	//r.addUsers(project.Users)
 	//Groups
 
 	r.remotes = remotes
@@ -67,6 +70,7 @@ func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]gofo
 	return r
 }
 
-func (r *ProjectStruct) AddUsers(users string) {
+//addUsers (TODO)
+func (r *ProjectStruct) addUsers(users string) {
 	//
 }
