@@ -158,8 +158,8 @@ func (gls *GitlabPlugin) projectsExists(ret *goforjj.PluginData) (err error) {
 			projectData.branchConnect["master"] = "origin/master"
 		}
 		ret.Repos[name] = goforjj.PluginRepo{ //Project
-			Name: 		projectData.Name,
-			Exist: 		projectData.exist,
+			Name: 			projectData.Name,
+			Exist: 			projectData.exist,
 			Remotes: 		projectData.remotes,
 			BranchConnect: 		projectData.branchConnect,
 			//Owner: 		projectData.Owner,
