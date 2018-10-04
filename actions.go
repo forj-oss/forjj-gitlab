@@ -13,7 +13,7 @@ import (
 
 )
 
-//DoCreate start forjj create
+//DoCreate --> forjj create
 // Do creating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -133,7 +133,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	return
 }
 
-//DoUpdate start forjj update
+//DoUpdate --> forjj update
 // Do updating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -169,7 +169,7 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 	return
 }
 
-//DoMaintain start forjj maintain
+//DoMaintain --> forjj maintain
 // Do maintaining plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
