@@ -12,15 +12,15 @@ import (
 )
 
 // return true if instance doesn't exist.
-func (r *CreateReq) check_source_existence(ret *goforjj.PluginData) (p *GitlabPlugin, status bool) {
+func (r *CreateReq) checkSourceExistence(ret *goforjj.PluginData) (p *GitlabPlugin, status bool) {
 	log.Print("Checking Gitlab source code existence.")
-	src_path := path.Join(r.Forj.ForjjSourceMount, r.Forj.ForjjInstanceName)
-	if _, err := os.Stat(path.Join(src_path, gitlab_file)); err == nil {
-		log.Printf(ret.Errorf("Unable to create the gitlab source code for instance name '%s' which already exist.\nUse update to update it (or update %s), and maintain to update gitlab according to his configuration. %s.", src_path, src_path, err))
+	srcPath := path.Join(r.Forj.ForjjSourceMount, r.Forj.ForjjInstanceName)
+	if _, err := os.Stat(path.Join(srcPath, gitlabFile)); err == nil {
+		log.Printf(ret.Errorf("Unable to create the gitlab source code for instance name '%s' which already exist.\nUse update to update it (or update %s), and maintain to update gitlab according to his configuration. %s.", srcPath, srcPath, err))
 		return
 	}
 
-	p = new_plugin(src_path)
+	p = newPlugin(srcPath)
 
 	log.Printf(ret.StatusAdd("environment checked."))
 	return p, true
@@ -32,8 +32,8 @@ func (r *CreateArgReq) SaveMaintainOptions(ret *goforjj.PluginData) {
 	}
 }
 
-func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginData) error{
-	if gls.gitlab_source.Urls == nil{
+func (gls *GitlabPlugin) createYamlData(req *CreateReq, ret *goforjj.PluginData) error{
+	if gls.gitlabSource.Urls == nil{
 		return fmt.Errorf("Internal Error. Urls was not set")
 	}
 
@@ -49,15 +49,15 @@ func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginDat
 	//SetOrgHooks
 
 	for name, project := range req.Objects.Repo{
-		is_infra := (name == gls.app.ForjjInfra)
-		if gls.gitlabDeploy.NoProjects && !is_infra {
+		isInfra := (name == gls.app.ForjjInfra)
+		if gls.gitlabDeploy.NoProjects && !isInfra {
 			continue
 		}
 		if !project.IsValid(name, ret){
 			ret.StatusAdd("Warning!!! Invalid project '%s' requested. Ignored.")
 			continue
 		}
-		gls.SetProject(&project, is_infra, project.Deployable == "true")
+		gls.SetProject(&project, isInfra, project.Deployable == "true")
 		//gls.SetHooks(...)
 
 	}
@@ -71,8 +71,8 @@ func (gls *GitlabPlugin) create_yaml_data(req *CreateReq, ret *goforjj.PluginDat
 
 func (gls *GitlabPlugin) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
 	upstream = goforjj.PluginRepoRemoteUrl{
-		Ssh: gls.gitlab_source.Urls["gitlab-ssh"] + gls.gitlabDeploy.Group + "/" + name + ".git",
-		Url: gls.gitlab_source.Urls["gitlab-url"] + "/" + gls.gitlabDeploy.Group + "/" + name,
+		Ssh: gls.gitlabSource.Urls["gitlab-ssh"] + gls.gitlabDeploy.Group + "/" + name + ".git",
+		Url: gls.gitlabSource.Urls["gitlab-url"] + "/" + gls.gitlabDeploy.Group + "/" + name,
 	}
 	return
 }

@@ -10,12 +10,12 @@ import(
 	"github.com/xanzy/go-gitlab"
 )
 
-func (gls *GitlabPlugin) gitlab_connect(server string, ret *goforjj.PluginData) *gitlab.Client {
+func (gls *GitlabPlugin) gitlabConnect(server string, ret *goforjj.PluginData) *gitlab.Client {
 	//
 	gls.Client = gitlab.NewClient(nil, gls.token)
 
 	//Set url
-	if err := gls.gitlab_set_url(server); err != nil{
+	if err := gls.gitlabSetUrl(server); err != nil{
 		ret.Errorf("Invalid url. %s", err)
 		return nil
 	}
@@ -51,10 +51,10 @@ func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 	} else {
 		gls.gitlabDeploy.ProdGroup = group
 	}
-	gls.gitlab_source.ProdGroup = gls.gitlabDeploy.ProdGroup
+	gls.gitlabSource.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
-func (gls *GitlabPlugin) ensure_group_exists(ret *goforjj.PluginData) (s bool){
+func (gls *GitlabPlugin) ensureGroupExists(ret *goforjj.PluginData) (s bool){
 	//TODO
 	return																   
 }
@@ -73,7 +73,7 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 			ret.Errorf("Unable to identify the infra project. Unknown issue: %s",e)
 			return
 		} else {
-			gls.new_forge = (resp.StatusCode != 200)
+			gls.newForge = (resp.StatusCode != 200)
 		}
 		return true
 	}
@@ -82,37 +82,37 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 	return
 }
 
-func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
-	gl_url := ""
+func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
+	glUrl := ""
 
-	if gls.gitlab_source.Urls == nil {
-		gls.gitlab_source.Urls = make(map[string]string)
+	if gls.gitlabSource.Urls == nil {
+		gls.gitlabSource.Urls = make(map[string]string)
 	}
 
-	if !gls.maintain_ctxt {
+	if !gls.maintainCtxt {
 		if server == "" { // || ? 
-			gls.gitlab_source.Urls["gitlab-base-url"] = "https://gitlab.com/"
-			gls.gitlab_source.Urls["gitlab-url"] = "https://gitlab.com"
-			gls.gitlab_source.Urls["gitlab-ssh"] = "git@gitlab.com:"
+			gls.gitlabSource.Urls["gitlab-base-url"] = "https://gitlab.com/"
+			gls.gitlabSource.Urls["gitlab-url"] = "https://gitlab.com"
+			gls.gitlabSource.Urls["gitlab-ssh"] = "git@gitlab.com:"
 		} else {
 			//set from serveur // ! \\ TODO
 			server = "gitlab.com"
-			gl_url = "https://" + server + "/api/v4/"
-			gls.gitlab_source.Urls["gitlab-url"] = "https://gitlab.com"
-			gls.gitlab_source.Urls["gitlab-ssh"] = "git@gitlab.com:"
+			glUrl = "https://" + server + "/api/v4/"
+			gls.gitlabSource.Urls["gitlab-url"] = "https://gitlab.com"
+			gls.gitlabSource.Urls["gitlab-ssh"] = "git@gitlab.com:"
 		}
 	} else {
 		//maintain context
-		gls.gitlab_source.Urls = gls.gitlabDeploy.Urls
-		gl_url = gls.gitlab_source.Urls["gitlab-base-url"]
+		gls.gitlabSource.Urls = gls.gitlabDeploy.Urls
+		glUrl = gls.gitlabSource.Urls["gitlab-base-url"]
 	}
 
-	if gl_url == ""{
+	if glUrl == ""{
 		return
 	}
 
-	//gls.Client., err = url.Parse(gl_url)
-	err = gls.Client.SetBaseURL(gl_url)
+	//gls.Client., err = url.Parse(glUrl)
+	err = gls.Client.SetBaseURL(glUrl)
 	
 	if err != nil{
 		return
@@ -121,41 +121,41 @@ func (gls *GitlabPlugin) gitlab_set_url(server string) (err error) {
 	return
 }
 
-func (r *ProjectStruct) ensure_exists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
+func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
 	//test existence
 	//TODO
 }
 
-func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
+func (gls *GitlabPlugin) projectsExists(ret *goforjj.PluginData) (err error) {
 	clientProjects := gls.Client.Projects // Projects of user
 	client, _, err := gls.Client.Users.CurrentUser() // Get current user
 	
 	//loop
-	for name, project_data := range gls.gitlabDeploy.Projects{
+	for name, projectData := range gls.gitlabDeploy.Projects{
 
 		URLEncPathProject := client.Username + "/" + name // UserName/ProjectName
 		//Get X repo, if find --> err
-		if found_project, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
+		if foundProject, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
 			if err == nil && name == gls.app.ForjjInfra {
 				err = fmt.Errorf("Infra projects '%s' already exist in gitlab server.", name)
 			}
-			project_data.exist = true
-			if project_data.remotes == nil{
-				project_data.remotes = make(map[string]goforjj.PluginRepoRemoteUrl)
-				project_data.branchConnect = make(map[string]string)
+			projectData.exist = true
+			if projectData.remotes == nil{
+				projectData.remotes = make(map[string]goforjj.PluginRepoRemoteUrl)
+				projectData.branchConnect = make(map[string]string)
 			}
-			project_data.remotes["origin"] = goforjj.PluginRepoRemoteUrl{
-				Ssh: found_project.SSHURLToRepo,
-				Url: found_project.HTTPURLToRepo,
+			projectData.remotes["origin"] = goforjj.PluginRepoRemoteUrl{
+				Ssh: foundProject.SSHURLToRepo,
+				Url: foundProject.HTTPURLToRepo,
 			}
-			project_data.branchConnect["master"] = "origin/master"
+			projectData.branchConnect["master"] = "origin/master"
 		}
 		ret.Repos[name] = goforjj.PluginRepo{ //Project
-			Name: 		project_data.Name,
-			Exist: 		project_data.exist,
-			Remotes: 		project_data.remotes,
-			BranchConnect: 		project_data.branchConnect,
-			//Owner: 		project_data.Owner,
+			Name: 		projectData.Name,
+			Exist: 		projectData.exist,
+			Remotes: 		projectData.remotes,
+			BranchConnect: 		projectData.branchConnect,
+			//Owner: 		projectData.Owner,
 		}
 
 	}
@@ -165,16 +165,16 @@ func (gls *GitlabPlugin) projects_exists(ret *goforjj.PluginData) (err error) {
 
 func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 	log.Print("Checking Infrastructure code existence.")
-	sourceProject := gls.source_path // ! \\
+	sourceProject := gls.sourcePath // ! \\
 	sourcePath := path.Join(sourceProject, gls.instance)
-	gls.sourceFile = path.Join(sourcePath, gitlab_file)
+	gls.sourceFile = path.Join(sourcePath, gitlabFile)
 
 	deployProject := path.Join(gls.deployMount, gls.deployTo)
 	deployBase := path.Join(deployProject, gls.instance)
 
-	gls.deployFile = path.Join(deployBase, gitlab_file)
+	gls.deployFile = path.Join(deployBase, gitlabFile)
 
-	gls.gitFile = path.Join(gls.instance, gitlab_file)
+	gls.gitFile = path.Join(gls.instance, gitlabFile)
 
 	switch when {
 	case "create":
@@ -189,7 +189,7 @@ func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 		}
 
 		if _, err := os.Stat(gls.sourceFile); err == nil{
-			return fmt.Errorf("Unable to create the gitlab configuration which already exist.\nUse 'update' to update it "+"(or update %s), and 'maintain' to update your github service according to his configuration.",path.Join(gls.instance, gitlab_file))
+			return fmt.Errorf("Unable to create the gitlab configuration which already exist.\nUse 'update' to update it "+"(or update %s), and 'maintain' to update your github service according to his configuration.",path.Join(gls.instance, gitlabFile))
 		}
 
 		if _, err := os.Stat(deployBase); err != nil{

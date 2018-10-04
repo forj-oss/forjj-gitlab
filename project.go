@@ -7,7 +7,7 @@ import(
 type ProjectStruct struct {
 	Name 			string
 	Flow 			string 				`yaml:",omitempty"`
-	Description 	string 				`yaml:",omitempty"`
+	Description		string 				`yaml:",omitempty"`
 	Disabled 		bool				`yaml:",omitempty"`
 	IssueTracker 	bool 				`yaml:"issue_tracker,omitempty"`
 	Users 			map[string]string 	`yaml:",omitempty"`
@@ -67,6 +67,6 @@ func (r *ProjectStruct) set(project *RepoInstanceStruct, remotes map[string]gofo
 	return r
 }
 
-func (r *ProjectStruct) AddUsers (users string) {
+func (r *ProjectStruct) AddUsers(users string) {
 	//
 }
