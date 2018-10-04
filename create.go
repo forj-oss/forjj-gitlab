@@ -26,12 +26,14 @@ func (r *CreateReq) checkSourceExistence(ret *goforjj.PluginData) (p *GitlabPlug
 	return p, true
 }
 
+//SaveMaintainOptions save maintain options (TODO ?)
 func (r *CreateArgReq) SaveMaintainOptions(ret *goforjj.PluginData) {
 	if ret.Options == nil {
 		ret.Options = make(map[string]goforjj.PluginOption)
 	}
 }
 
+//createYamlData prepare data for yaml file (TODO)
 func (gls *GitlabPlugin) createYamlData(req *CreateReq, ret *goforjj.PluginData) error{
 	if gls.gitlabSource.Urls == nil{
 		return fmt.Errorf("Internal Error. Urls was not set")
@@ -53,7 +55,7 @@ func (gls *GitlabPlugin) createYamlData(req *CreateReq, ret *goforjj.PluginData)
 		if gls.gitlabDeploy.NoProjects && !isInfra {
 			continue
 		}
-		if !project.IsValid(name, ret){
+		if !project.isValid(name, ret){
 			ret.StatusAdd("Warning!!! Invalid project '%s' requested. Ignored.")
 			continue
 		}

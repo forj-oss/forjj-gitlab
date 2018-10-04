@@ -8,13 +8,14 @@ import(
 	"golang.org/x/sys/unix"
 )
 
-//IsWritable, Linux support only
+//IsWritable Linux support only
 func isWritable(path string) (res bool) {
 	return unix.Access(path, unix.W_OK) == nil
 }
 
+
+// reqCheckPath return false if something is wrong.
 // check path is writable.
-// return false if something is wrong.
 func reqCheckPath(name, path string, ret *goforjj.PluginData) bool {
 
 	if path == "" {
@@ -35,7 +36,8 @@ func reqCheckPath(name, path string, ret *goforjj.PluginData) bool {
 	return false
 }
 
-func (gls *GitlabPlugin) verify_req_fails(ret *goforjj.PluginData, check map[string]bool) bool{
+//verifyReqFails verify check params (TODO)
+func (gls *GitlabPlugin) verifyReqFails(ret *goforjj.PluginData, check map[string]bool) bool{
 	if v, ok := check["source"]; ok && v {
 		if reqCheckPath("source (forjj-source-mount)", gls.sourcePath, ret){ // ! \\
 			return true

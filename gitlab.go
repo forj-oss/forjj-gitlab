@@ -10,6 +10,7 @@ import(
 	"github.com/xanzy/go-gitlab"
 )
 
+//gitlabConnect connect user to gitlab (TODO)
 func (gls *GitlabPlugin) gitlabConnect(server string, ret *goforjj.PluginData) *gitlab.Client {
 	//
 	gls.Client = gitlab.NewClient(nil, gls.token)
@@ -32,6 +33,7 @@ func (gls *GitlabPlugin) gitlabConnect(server string, ret *goforjj.PluginData) *
 	return gls.Client
 }
 
+//InitGroup ...
 func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
 		gls.SetGroup(app)
@@ -40,6 +42,7 @@ func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	return
 }
 
+//SetGroup ...
 func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 	if group := fromApp.Group; group == ""{
 		gls.gitlabDeploy.Group =fromApp.ForjjGroup
@@ -54,11 +57,13 @@ func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 	gls.gitlabSource.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
+//ensureGroupExists (TODO)
 func (gls *GitlabPlugin) ensureGroupExists(ret *goforjj.PluginData) (s bool){
 	//TODO
 	return																   
 }
 
+//IsNewForge ...
 func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 
 	ClientProjects := gls.Client.Projects
@@ -82,6 +87,7 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 	return
 }
 
+//gitlabSetUrl (TODO)
 func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 	glUrl := ""
 
@@ -121,11 +127,12 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 	return
 }
 
+//ensureExists (TODO)
 func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
-	//test existence
 	//TODO
 }
 
+//projectExists (TODO)
 func (gls *GitlabPlugin) projectsExists(ret *goforjj.PluginData) (err error) {
 	clientProjects := gls.Client.Projects // Projects of user
 	client, _, err := gls.Client.Users.CurrentUser() // Get current user
@@ -163,9 +170,10 @@ func (gls *GitlabPlugin) projectsExists(ret *goforjj.PluginData) (err error) {
 	return
 }
 
+//checkSourcesExistence (TODO UPDATE)
 func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 	log.Print("Checking Infrastructure code existence.")
-	sourceProject := gls.sourcePath // ! \\
+	sourceProject := gls.sourcePath
 	sourcePath := path.Join(sourceProject, gls.instance)
 	gls.sourceFile = path.Join(sourcePath, gitlabFile)
 

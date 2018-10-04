@@ -10,7 +10,7 @@ import (
 	"path"
 )
 
-// Return ok if the jenkins instance exist
+// checkSourceExistence Return ok if the X instance exist
 func (r *UpdateReq) checkSourceExistence(ret *goforjj.PluginData) (p *GitlabPlugin, status bool) {
 	log.Print("Checking Gitlab source code existence.")
 	srcPath := path.Join(r.Forj.ForjjSourceMount, r.Forj.ForjjInstanceName)
@@ -29,7 +29,7 @@ func (r *UpdateReq) checkSourceExistence(ret *goforjj.PluginData) (p *GitlabPlug
 	return true
 }*/
 
-// SaveMaintainOptions Function which adds maintain options as part of the plugin answer in create/update phase.
+// SaveMaintainOptions which adds maintain options as part of the plugin answer in create/update phase.
 // forjj won't add any driver name because 'maintain' phase read the list of drivers to use from forjj-maintain.yml
 // So --git-us is not available for forjj maintain.
 func (r *UpdateArgReq) SaveMaintainOptions(ret *goforjj.PluginData) {
@@ -38,6 +38,7 @@ func (r *UpdateArgReq) SaveMaintainOptions(ret *goforjj.PluginData) {
 	}
 }
 
+//addMaintainOptionValue (default)
 func addMaintainOptionValue(options map[string]goforjj.PluginOption, option, value, defaultv, help string) goforjj.PluginOption {
 	opt, ok := options[option]
 	if ok && value != "" {
@@ -55,6 +56,7 @@ func addMaintainOptionValue(options map[string]goforjj.PluginOption, option, val
 	return opt
 }
 
+//SetProject set default remotes and branchConnect (TODO)
 func (r *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) {
 	upstream := r.DefineRepoUrls(project.Name)
 

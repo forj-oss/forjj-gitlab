@@ -39,11 +39,13 @@ type GitlabPlugin struct{
 	newForge		bool
 }
 
+//GitlabSourceStruct (Fix inline)
 type GitlabSourceStruct struct{
 	goforjj.PluginService	`,inline`							//base url
 	ProdGroup string		`yaml:"production-group-name"`		//`yaml:"production-group-name, omitempty"`
 }
 
+//GitlabDeployStruct (TODO)
 type GitlabDeployStruct struct{
 	goforjj.PluginService								`yaml:",inline"`			//urls
 	Projects				map[string]ProjectStruct								// projects managed in gitlab
@@ -56,6 +58,7 @@ type GitlabDeployStruct struct{
 
 const gitlabFile = "forjj-gitlab.yaml"
 
+//YamlGitlab (TODO)
 type YamlGitlab struct {
 }
 

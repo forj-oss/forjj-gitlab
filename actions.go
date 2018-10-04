@@ -49,7 +49,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	check["source"] = true
 
 	//ensure source path is writeable && token isn't empty
-	if gls.verify_req_fails(ret, check){
+	if gls.verifyReqFails(ret, check){
 		return
 	}
 
@@ -197,7 +197,7 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 	check["workspace"] = true
 	check["deploy"] = true
 
-	if gls.verify_req_fails(ret, check) {
+	if gls.verifyReqFails(ret, check) {
 		return
 	}
 
