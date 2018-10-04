@@ -23,18 +23,18 @@ type GitlabPlugin struct{
 	token			string
 	group			string
 
-	app				*AppInstanceStruct		//forjfile access
-	Client			*gitlab.Client			//gitlab client ~ api gitlab
-	gitlabSource	GitlabSourceStruct		//urls...
-	gitlabDeploy	GitlabDeployStruct		//
+	app			*AppInstanceStruct	//forjfile access
+	Client			*gitlab.Client		//gitlab client ~ api gitlab
+	gitlabSource		GitlabSourceStruct	//urls...
+	gitlabDeploy		GitlabDeployStruct	//
 
 	gitFile			string
 	deployFile		string
 	sourceFile		string
 
 	//maintain
-	workspaceMount	string
-	maintainCtxt	bool
+	workspaceMount		string
+	maintainCtxt		bool
 	force			bool
 
 	newForge		bool
@@ -42,17 +42,17 @@ type GitlabPlugin struct{
 
 //GitlabSourceStruct (Fix inline)
 type GitlabSourceStruct struct{
-	goforjj.PluginService	`,inline`							//base url
-	ProdGroup string		`yaml:"production-group-name"`		//`yaml:"production-group-name, omitempty"`
+	goforjj.PluginService			`,inline`			//base url
+	ProdGroup 		string		`yaml:"production-group-name"`	//`yaml:"production-group-name, omitempty"`
 }
 
 //GitlabDeployStruct (TODO)
 type GitlabDeployStruct struct{
-	goforjj.PluginService								`yaml:",inline"`			//urls
-	Projects				map[string]ProjectStruct								// projects managed in gitlab
-	NoProjects				bool						`yaml:",omitempty"`
-	ProdGroup				string
-	Group					string
+	goforjj.PluginService						`yaml:",inline"`	//urls
+	Projects			map[string]ProjectStruct				// projects managed in gitlab
+	NoProjects			bool				`yaml:",omitempty"`
+	ProdGroup			string
+	Group				string
 	GroupDisplayName		string
 	//...
 }
