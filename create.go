@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-// return true if instance doesn't exist.
+// checkSourceExistence return true if instance doesn't exist.
 func (r *CreateReq) checkSourceExistence(ret *goforjj.PluginData) (p *GitlabPlugin, status bool) {
 	log.Print("Checking Gitlab source code existence.")
 	srcPath := path.Join(r.Forj.ForjjSourceMount, r.Forj.ForjjInstanceName)
@@ -68,7 +68,7 @@ func (gls *GitlabPlugin) createYamlData(req *CreateReq, ret *goforjj.PluginData)
 
 	return nil
 }
-
+// DefineRepoUrls return default repo url for the repo name given
 func (gls *GitlabPlugin) DefineRepoUrls(name string) (upstream goforjj.PluginRepoRemoteUrl){
 	upstream = goforjj.PluginRepoRemoteUrl{
 		Ssh: gls.gitlabSource.Urls["gitlab-ssh"] + gls.gitlabDeploy.Group + "/" + name + ".git",
