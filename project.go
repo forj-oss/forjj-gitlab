@@ -10,19 +10,19 @@ type ProjectStruct struct {
 	Flow 			string 				`yaml:",omitempty"`
 	Description		string 				`yaml:",omitempty"`
 	Disabled 		bool				`yaml:",omitempty"`
-	IssueTracker 	bool 				`yaml:"issue_tracker,omitempty"`
-	Users 			map[string]string 	`yaml:",omitempty"`
+	IssueTracker 		bool 				`yaml:"issue_tracker,omitempty"`
+	Users 			map[string]string 		`yaml:",omitempty"`
 	//Groups
 
 	exist 			bool 				`yaml:",omitempty"`
 	remotes 		map[string]goforjj.PluginRepoRemoteUrl
-	branchConnect 	map[string]string 	
+	branchConnect 		map[string]string 	
 	//...
 
 	//maintain
 	Infra 			bool 				`yaml:",omitempty"`
 	Role 			string 				`yaml:",omitempty"`
-	IsDeployable 	bool
+	IsDeployable 		bool
 
 	Owner 			string 				`yaml:",omitempty"`
 
