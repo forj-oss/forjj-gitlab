@@ -13,7 +13,7 @@ import (
 
 )
 
-
+//DoCreate start forjj create
 // Do creating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -33,7 +33,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	//init GitlabPlugin
 	gls := GitlabPlugin{
-		source_path: 	req.Forj.ForjjSourceMount, // ! \\
+		sourcePath: 	req.Forj.ForjjSourceMount, // ! \\
 		deployMount: 	req.Forj.ForjjDeployMount,
 		instance: 		req.Forj.ForjjInstanceName,
 		deployTo: 		req.Forj.ForjjDeploymentEnv,
@@ -55,7 +55,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	//verify if instance existe
 	if a, found := req.Objects.App[instance]; !found{
-		ret.Errorf("Internal issue. Forjj has not given the Application information for '%s'. Aborted.")
+		ret.Errorf("Internal issue. Forjj has not given the Application information for '%s'. Aborted.", instance)
 		return
 	} else {
 		gls.app = &a
@@ -65,7 +65,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Println("Checking gitlab connection.")
 	ret.StatusAdd("Connect to gitlab...")
 
-	if git := gls.gitlab_connect("X"/*"myserv"*/, ret); git == nil{
+	if git := gls.gitlabConnect("X"/*"myserv"*/, ret); git == nil{
 		return
 	}
 
@@ -78,13 +78,13 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	}
 
 	//Create yaml data for maintain function
-	if err := gls.create_yaml_data(req, ret); err != nil {
+	if err := gls.createYamlData(req, ret); err != nil {
 		ret.Errorf("Unable to create. %s",err)
 		return
 	}
 
 	//repos exist ?
-	if err := gls.projects_exists(ret); err != nil {
+	if err := gls.projectsExists(ret); err != nil {
 		ret.Errorf("%s\nUnable to 'create' your forge when gitlab already has an infra project created. Clone it and use 'update' instead.", err)
 		return 419
 	}
@@ -97,18 +97,18 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	ret.StatusAdd("Environment checked. Ready to be created.")
 
 	//Path in ctxt git
-	gitFile := path.Join(gls.instance, gitlab_file)
+	gitFile := path.Join(gls.instance, gitlabFile)
 
 	//Save gitlab source
-	if _, err := gls.save_yaml(&gls.gitlab_source, gls.sourceFile/*ret, instance*/); err != nil {
+	if _, err := gls.saveYaml(&gls.gitlabSource, gls.sourceFile/*ret, instance*/); err != nil {
 		ret.Errorf("%s", err)
 		return
 	}
 
-	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.source_path)) // ! \\
+	log.Printf(ret.StatusAdd("Configuration saved in source project '%s' (%s).", gitFile, gls.sourcePath)) // ! \\
 
 	//Save gitlab deploy
-	if _, err := gls.save_yaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
+	if _, err := gls.saveYaml(&gls.gitlabDeploy, gls.deployFile); err != nil{
 		ret.Errorf("%s", err)
 		return
 	}
@@ -116,12 +116,12 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	log.Printf(ret.StatusAdd("Configuration saved in deploy project '%s' (%s).", gitFile, path.Join(gls.deployMount, gls.deployTo)))
 
 	//Build final post answer
-	for k, v := range gls.gitlab_source.Urls{
+	for k, v := range gls.gitlabSource.Urls{
 		ret.Services.Urls[k] = v
 	}
 
 	//API by forjj
-	ret.Services.Urls["api_url"] = gls.gitlab_source.Urls["gitlab-base-url"]
+	ret.Services.Urls["api_url"] = gls.gitlabSource.Urls["gitlab-base-url"]
 
 	ret.CommitMessage = fmt.Sprint("Gitlab configuration created.")
 
@@ -133,6 +133,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	return
 }
 
+//DoUpdate start forjj update
 // Do updating plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -142,18 +143,18 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 	/*var p *GitlabPlugin
 
 	// This is where you shoud write your Update code. Following lines are typical code for a basic plugin.
-	if pr, ok := req.check_source_existence(ret); !ok {
+	if pr, ok := req.checkSourceExistence(ret); !ok {
 		return
 	} else {
 		p = pr
 	}
 
 	instance := req.Forj.ForjjInstanceName
-	if !p.load_yaml(ret, instance) {
+	if !p.loadYaml(ret, instance) {
 		return
 	}
 
-	if !p.update_from(req, ret) {
+	if !p.updateFrom(req, ret) {
 		return
 	}
 
@@ -162,12 +163,13 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 	//    return
 	//}
 
-	if !p.save_yaml(ret, instance) {
+	if !p.saveYaml(ret, instance) {
 		return
 	}*/
 	return
 }
 
+//DoMaintain start forjj maintain
 // Do maintaining plugin task
 // req_data contains the request data posted by forjj. Structure generated from 'gitlab.yaml'.
 // ret_data contains the response structure to return back to forjj.
@@ -180,12 +182,12 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 	if a, found := req.Objects.App[instance]; !found {
 		ret.Errorf("Invalid request. Missing Objects/App/%s", instance)
 		return
-	}else{
+	} else {
 		gls = GitlabPlugin{
 			deployMount: 		req.Forj.ForjjDeployMount,
-			workspace_mount: 	req.Forj.ForjjWorkspaceMount,
+			workspaceMount: 	req.Forj.ForjjWorkspaceMount,
 			token: 				a.Token,
-			maintain_ctxt: 		true,
+			maintainCtxt: 		true,
 			force: 				req.Forj.Force == "true",
 		}
 	}
@@ -199,19 +201,19 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 		return
 	}
 
-	confFile := path.Join(gls.deployMount, req.Forj.ForjjDeploymentEnv, instance, gitlab_file)
+	confFile := path.Join(gls.deployMount, req.Forj.ForjjDeploymentEnv, instance, gitlabFile)
 
 	//read yaml file
-	if err := gls.load_yaml(confFile/*ret, instance*/); err != nil{
+	if err := gls.loadYaml(confFile/*ret, instance*/); err != nil{
 		ret.Errorf("%s"/*, err*/)
 		return
 	}
 	
-	if gls.gitlab_connect("", ret) == nil{
+	if gls.gitlabConnect("", ret) == nil{
 		return
 	}
 
-	if !gls.ensure_group_exists(ret){
+	if !gls.ensureGroupExists(ret){
 		return
 	}
 
@@ -224,16 +226,16 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 	}
 
 	//loop verif
-	for name, project_data := range gls.gitlabDeploy.Projects{
-		if !project_data.Infra && gls.gitlabDeploy.NoProjects{
+	for name, projectData := range gls.gitlabDeploy.Projects{
+		if !projectData.Infra && gls.gitlabDeploy.NoProjects{
 			log.Printf(ret.StatusAdd("Project ignored: %s", name))
 			continue
 		}
-		if project_data.Role == "infra" && !project_data.IsDeployable{
+		if projectData.Role == "infra" && !projectData.IsDeployable{
 			log.Printf(ret.StatusAdd("Project ignored: %s - Infra project owned by '%s'", name, gls.gitlabDeploy.ProdGroup))
 			continue
 		}
-		/*if err := project_data.ensure_exists(&gls, ret); err != nil{
+		/*if err := projectData.ensureExists(&gls, ret); err != nil{
 			return
 		}*/
 		//...
