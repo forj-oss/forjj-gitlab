@@ -4,70 +4,116 @@
 package main
 
 import (
-	"github.com/forj-oss/goforjj"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"path"
+	"fmt"
+	
+	"github.com/forj-oss/goforjj"
+	"github.com/xanzy/go-gitlab"
+	"gopkg.in/yaml.v2"
 )
 
-type GitlabPlugin struct {
-	yaml        YamlGitlab
-	source_path string
+//GitlabPlugin main struct
+type GitlabPlugin struct{
+	yaml			YamlGitlab
+	sourcePath		string
+
+	deployMount		string
+	instance		string
+	deployTo		string
+	token			string
+	group			string
+
+	app			*AppInstanceStruct	//forjfile access
+	Client			*gitlab.Client		//gitlab client ~ api gitlab
+	gitlabSource		GitlabSourceStruct	//urls...
+	gitlabDeploy		GitlabDeployStruct	//
+
+	gitFile			string
+	deployFile		string
+	sourceFile		string
+
+	//maintain
+	workspaceMount		string
+	maintainCtxt		bool
+	force			bool
+
+	newForge		bool
 }
 
-const gitlab_file = "forjj-gitlab.yaml"
+//GitlabSourceStruct (Fix inline)
+type GitlabSourceStruct struct{
+	goforjj.PluginService			`,inline`			//base url
+	ProdGroup 		string		`yaml:"production-group-name"`	//`yaml:"production-group-name, omitempty"`
+}
 
+//GitlabDeployStruct (TODO)
+type GitlabDeployStruct struct{
+	goforjj.PluginService						`yaml:",inline"`	//urls
+	Projects			map[string]ProjectStruct				// projects managed in gitlab
+	NoProjects			bool				`yaml:",omitempty"`
+	ProdGroup			string
+	Group				string
+	GroupDisplayName		string
+	//...
+}
+
+const gitlabFile = "forjj-gitlab.yaml"
+
+//YamlGitlab (TODO)
 type YamlGitlab struct {
 }
 
-func new_plugin(src string) (p *GitlabPlugin) {
-	p = new(GitlabPlugin)
+func newPlugin(src string) (gls *GitlabPlugin) {
+	gls = new(GitlabPlugin)
 
-	p.source_path = src
+	gls.sourcePath = src
 	return
 }
 
-func (p *GitlabPlugin) initialize_from(r *CreateReq, ret *goforjj.PluginData) (status bool) {
+func (gls *GitlabPlugin) initializeFrom(r *CreateReq, ret *goforjj.PluginData) (status bool) {
 	return true
 }
 
-func (p *GitlabPlugin) load_from(ret *goforjj.PluginData) (status bool) {
+func (gls *GitlabPlugin) loadFrom(ret *goforjj.PluginData) (status bool) {
 	return true
 }
 
-func (p *GitlabPlugin) update_from(r *UpdateReq, ret *goforjj.PluginData) (status bool) {
+func (gls *GitlabPlugin) updateFrom(r *UpdateReq, ret *goforjj.PluginData) (status bool) {
 	return true
 }
 
-func (p *GitlabPlugin) save_yaml(ret *goforjj.PluginData, instance string) (status bool) {
-	file := path.Join(instance, gitlab_file)
-
-	d, err := yaml.Marshal(&p.yaml)
+func (gls *GitlabPlugin) saveYaml(in interface{}, file string) (Updated bool, _ error) {
+	d, err := yaml.Marshal(in)
 	if err != nil {
-		ret.Errorf("Unable to encode forjj gitlab configuration data in yaml. %s", err)
-		return
+		return false, fmt.Errorf("Unable to encode gitlab data in yaml. %s", err)
 	}
 
-	if err := ioutil.WriteFile(file, d, 0644); err != nil {
-		ret.Errorf("Unable to save '%s'. %s", file, err)
+	if dBefore, err := ioutil.ReadFile(file); err != nil{
+		Updated = true
+	} else {
+		Updated = (string(d) != string(dBefore))
+	}
+	
+	if !Updated {
 		return
 	}
-	return true
+	if err = ioutil.WriteFile(file, d, 0644); err != nil {
+		return false, fmt.Errorf("Unable to save '%s'. %s", file, err)
+	}
+	return
 }
 
-func (p *GitlabPlugin) load_yaml(ret *goforjj.PluginData, instance string) (status bool) {
-	file := path.Join(instance, gitlab_file)
-
+func (gls *GitlabPlugin) loadYaml(file string) error {
 	d, err := ioutil.ReadFile(file)
 	if err != nil {
-		ret.Errorf("Unable to load '%s'. %s", file, err)
-		return
+		return fmt.Errorf("Unable to load '%s'. %s", file, err)
 	}
 
-	err = yaml.Unmarshal(d, &p.yaml)
+	err = yaml.Unmarshal(d, &gls.gitlabDeploy)
+
 	if err != nil {
-		ret.Errorf("Unable to decode forjj gitlab data in yaml. %s", err)
-		return
+		return fmt.Errorf("Unable to decode gitlab data in yaml. %s", err)
 	}
-	return true
+
+	return nil
 }

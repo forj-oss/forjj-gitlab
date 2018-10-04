@@ -23,7 +23,7 @@
                 "/home/kevin/WebProjects/CGI/Forges/gitlabForge/gitlab/.forj-workspace/lib"
             ],
             "showLog": true
-        }/*,
+        },
         {
             "name": "DXC: Run forjj-gitlab server",
             "type": "go",
@@ -43,6 +43,6 @@
                 "/home/kevin/WebProjects/CGI/Forges/gitlabForge/gitlab/.forj-workspace/lib"
             ],
             "showLog": true
-        }*/
+        }
     ]
 }
