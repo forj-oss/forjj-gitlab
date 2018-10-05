@@ -213,9 +213,9 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 		return
 	}
 
-	if !gls.ensureGroupExists(ret){
+	/*if !gls.ensureGroupExists(ret){ TODO
 		return
-	}
+	}*/
 
 	if !gls.IsNewForge(ret){
 		return
