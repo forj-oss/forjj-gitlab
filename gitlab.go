@@ -87,7 +87,7 @@ func (gls *GitlabPlugin) IsNewForge(ret *goforjj.PluginData) (_ bool){
 	return
 }
 
-//gitlabSetUrl (TODO)
+//gitlabSetUrl (TODO: server)
 func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 	glUrl := ""
 
@@ -117,7 +117,6 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 		return
 	}
 
-	//gls.Client., err = url.Parse(glUrl)
 	err = gls.Client.SetBaseURL(glUrl)
 	
 	if err != nil{
@@ -127,7 +126,7 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 	return
 }
 
-//ensureExists (TODO)
+//ensureExists (TODO UPDATE)
 func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) error {
 	//test existence
 	clientProjects := gls.Client.Projects
@@ -152,7 +151,7 @@ func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData)
 		log.Printf(ret.StatusAdd("Repo '%s': created", r.Name))
 
 	} else {
-		//Update
+		//Update TODO
 	}
 	
 	//...
