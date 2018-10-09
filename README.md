@@ -1,10 +1,6 @@
 # Introduction
 
-**!!! This README.md has been creaated by go generate and will never been regenerated except if you remove it. Please read and update any sentence written here.
-!!! At least, **<!!! >** MUST be replaced by appropriate text.
-!!! Of course this explanation have to be removed as well.**
-
-This plugin implements gitlab configuration to build **<!!! Define what kind of application you are building here>**.
+This plugin implements gitlab configuration to build an SCM environment for GIT repositories upstream.
 
 It has been implemented as REST API. See ...(TBD) for FORJJ REST API description.
 
@@ -21,6 +17,6 @@ The plugin will returns the list of source files managed by FORJJ gitlab plugin,
 Update mainly do update in the local ` + "`infra`" + ` repo and reports file updated to forjj. (The flow must be configured to push to the right place.)
 
 ## Maintain task
-This action will ensure **<!!! Define what kind of application is built>**:
+This action will ensure the SCM server side is properly configured and really update the server:
 
--  **<!!! Define the list of element updated in your application>**
+-  create repositories
