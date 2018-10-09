@@ -128,8 +128,36 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 }
 
 //ensureExists (TODO)
-func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) /*error*/ {
-	//TODO
+func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) error {
+	//test existence
+	clientProjects := gls.Client.Projects
+	client, _, err := gls.Client.Users.CurrentUser() // Get current user
+	URLEncPathProject := client.Username + "/" + r.Name // UserName/ProjectName
+
+	_, _, err = clientProjects.GetProject(URLEncPathProject)
+	
+	if err != nil {
+		//if does'nt exists --> Create
+		ABM := 0
+		abmg := &ABM
+		projectOptions := &gitlab.CreateProjectOptions{
+			Name: &r.Name,
+			ApprovalsBeforeMerge: abmg, //without: request error because is set to null (restriction SQL: not null)
+		}
+		_, _, e := gls.Client.Projects.CreateProject(projectOptions)
+		if e != nil{
+			ret.Errorf("Unable to create '%s'. %s.", r.Name, e)
+			return e
+		}
+		log.Printf(ret.StatusAdd("Repo '%s': created", r.Name))
+
+	} else {
+		//Update
+	}
+	
+	//...
+
+	return nil
 }
 
 //projectExists (TODO)
