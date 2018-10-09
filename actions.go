@@ -22,14 +22,7 @@ import (
 func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCode int) {
 
 	//Get instance name
-	instance := req.Forj.ForjjInstanceName
-
-	/*log.Printf(ret.StatusAdd("instance: " + instance))
-	log.Println(ret.StatusAdd("token: " + req.Objects.App[instance].Token))
-	log.Println(ret.StatusAdd("Source Mount: " + req.Forj.ForjjSourceMount))
-	log.Println(ret.StatusAdd("Deploy Mount: " + req.Forj.ForjjDeployMount))
-	log.Println(ret.StatusAdd("Deployto: " + req.Forj.ForjjDeploymentEnv))*/
-	
+	instance := req.Forj.ForjjInstanceName	
 
 	//init GitlabPlugin
 	gls := GitlabPlugin{
@@ -68,9 +61,6 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 	if git := gls.gitlabConnect("X"/*"myserv"*/, ret); git == nil{
 		return
 	}
-
-	/*log.Println(ret.StatusAdd("Org: " + gls.app.ForjjOrganization))
-	log.Println(ret.StatusAdd("Org: " + gls.app.Organization))*/
 
 	// Init Group of project
 	if !req.InitGroup(&gls){
