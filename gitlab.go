@@ -59,7 +59,8 @@ func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 
 //ensureGroupExists (TODO)
 func (gls *GitlabPlugin) ensureGroupExists(ret *goforjj.PluginData) (s bool){
-	//TODO
+	//Ensure Group exist, todo: if not it is created.
+	//Ensure user is owner (or same).
 	return																   
 }
 
@@ -126,7 +127,7 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 	return
 }
 
-//ensureExists (TODO UPDATE)
+//ensureExists (TODO UPDATE and group management)
 func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) error {
 	//test existence
 	clientProjects := gls.Client.Projects
