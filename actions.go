@@ -213,9 +213,9 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 		return
 	}
 
-	if !gls.ensureGroupExists(ret){
+	/*if !gls.ensureGroupExists(ret){ TODO
 		return
-	}
+	}*/
 
 	if !gls.IsNewForge(ret){
 		return
@@ -235,9 +235,10 @@ func DoMaintain(r *http.Request, req *MaintainReq, ret *goforjj.PluginData) (htt
 			log.Printf(ret.StatusAdd("Project ignored: %s - Infra project owned by '%s'", name, gls.gitlabDeploy.ProdGroup))
 			continue
 		}
-		/*if err := projectData.ensureExists(&gls, ret); err != nil{
+		if err := projectData.ensureExists(&gls, ret); err != nil{
 			return
-		}*/
+		}
+		
 		//...
 		log.Printf(ret.StatusAdd("Project maintained: %s", name))
 	}
