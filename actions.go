@@ -64,7 +64,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	// Init Group of project
 	if !req.InitGroup(&gls){
-		ret.Errorf("Internal Error. Unable to define the group.")
+		ret.Errorf("Internal Error. Unable to define the group or production group.")
 	}
 
 	//Create yaml data for maintain function

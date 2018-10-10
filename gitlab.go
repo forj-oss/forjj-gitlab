@@ -33,27 +33,46 @@ func (gls *GitlabPlugin) gitlabConnect(server string, ret *goforjj.PluginData) *
 	return gls.Client
 }
 
-//InitGroup ...
+//InitGroup TODO production group
 func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
+		if group := app.Group; group == ""{
+			return false
+		}
+		/*if prodGroup := app.ProductionGroup; prodGroup == ""{
+			return false
+		}*/
 		gls.SetGroup(app)
 		ret = true
 	}
 	return
 }
 
-//SetGroup ...
+//SetGroup TODO production group
 func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
-	if group := fromApp.Group; group == ""{
-		gls.gitlabDeploy.Group =fromApp.ForjjGroup
-	} else {
-		gls.gitlabDeploy.Group = group
+	
+	if group := fromApp.ProductionGroup; group == ""{			//
+		//gls.gitlabDeploy.ProdGroup = fromApp.ForjjGroup		//
+	} else {													//
+		gls.gitlabDeploy.ProdGroup = group						//
+	}															//
+
+	gls.gitlabDeploy.Group = fromApp.Group
+	//Get+set id
+	groups, _, err := gls.Client.Groups.SearchGroup(fromApp.Group)
+	if err != nil{
+		log.Printf("Group not exists in Gitlab server. ID not set.") //Change to stop, without ID maintain not found
 	}
-	if group := fromApp.ProductionGroup; group == ""{
-		gls.gitlabDeploy.ProdGroup = fromApp.ForjjGroup
-	} else {
-		gls.gitlabDeploy.ProdGroup = group
+	for _, element := range groups{
+		if element.Name == fromApp.Group {
+			gls.gitlabDeploy.GroupId = element.ID
+		}
 	}
+	if gls.gitlabDeploy.GroupId == 0 {
+		log.Printf("Group not exists in Gitlab server. ID not set.") //Change to stop, without ID maintain not found
+	}
+
+	//gls.gitlabDeploy.ProdGroup = fromApp.ProductionGroup
 	gls.gitlabSource.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
@@ -131,18 +150,18 @@ func (gls *GitlabPlugin) gitlabSetUrl(server string) (err error) {
 func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData) error {
 	//test existence
 	clientProjects := gls.Client.Projects
-	client, _, err := gls.Client.Users.CurrentUser() // Get current user
-	URLEncPathProject := client.Username + "/" + r.Name // UserName/ProjectName
+	//client, _, err := gls.Client.Users.CurrentUser() // Get current user
+	URLEncPathProject := gls.gitlabDeploy.Group + "/" + r.Name // UserName/ProjectName or Group/ProjectName
 
-	_, _, err = clientProjects.GetProject(URLEncPathProject)
+	_, _, err := clientProjects.GetProject(URLEncPathProject)
 	
 	if err != nil {
 		//if does'nt exists --> Create
 		ABM := 0
-		abmg := &ABM
 		projectOptions := &gitlab.CreateProjectOptions{
 			Name: &r.Name,
-			ApprovalsBeforeMerge: abmg, //without: request error because is set to null (restriction SQL: not null)
+			NamespaceID: &gls.gitlabDeploy.GroupId,
+			ApprovalsBeforeMerge: &ABM, //without: request error because is set to null (restriction SQL: not null)
 		}
 		_, _, e := gls.Client.Projects.CreateProject(projectOptions)
 		if e != nil{
@@ -153,6 +172,7 @@ func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData)
 
 	} else {
 		//Update TODO
+		
 	}
 	
 	//...
@@ -163,15 +183,15 @@ func (r *ProjectStruct) ensureExists(gls *GitlabPlugin, ret *goforjj.PluginData)
 //projectExists (TODO)
 func (gls *GitlabPlugin) projectsExists(ret *goforjj.PluginData) (err error) {
 	clientProjects := gls.Client.Projects // Projects of user
-	client, _, err := gls.Client.Users.CurrentUser() // Get current user
+	//client, _, err := gls.Client.Users.CurrentUser() // Get current user
 	
 	//loop
 	for name, projectData := range gls.gitlabDeploy.Projects{
 
-		URLEncPathProject := client.Username + "/" + name // UserName/ProjectName
+		URLEncPathProject := gls.gitlabDeploy.Group + "/" + name // client.Username = UserName/ProjectName or gls... = Group/ProjectName
 		//Get X repo, if find --> err
 		if foundProject, _, e := clientProjects.GetProject(URLEncPathProject); e == nil{
-			if err == nil && name == gls.app.ForjjInfra {
+			if err == nil && name == foundProject.Name {
 				err = fmt.Errorf("Infra projects '%s' already exist in gitlab server.", name)
 			}
 			projectData.exist = true
