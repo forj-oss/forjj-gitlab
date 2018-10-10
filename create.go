@@ -43,7 +43,7 @@ func (gls *GitlabPlugin) createYamlData(req *CreateReq, ret *goforjj.PluginData)
 	//gls.gitlabDeploy.Users = ...
 
 	//Norepo
-	gls.gitlabDeploy.NoProjects = (gls.app.ReposDisabled == "true")
+	gls.gitlabDeploy.NoProjects = (gls.app.ProjectsDisabled == "true")
 	if gls.gitlabDeploy.NoProjects {
 		log.Print("Repositories_disabled is true. forjj_gitlab won't manage repositories except the infra repository.")
 	}
