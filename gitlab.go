@@ -48,6 +48,21 @@ func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	return
 }
 
+//InitGroup Same for now, TODO production group
+func (req *UpdateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
+	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
+		if group := app.Group; group == ""{
+			return false
+		}
+		/*if prodGroup := app.ProductionGroup; prodGroup == ""{
+			return false
+		}*/
+		gls.SetGroup(app)
+		ret = true
+	}
+	return
+}
+
 //SetGroup TODO production group
 func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 	
