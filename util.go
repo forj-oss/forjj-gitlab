@@ -39,7 +39,7 @@ func reqCheckPath(name, path string, ret *goforjj.PluginData) bool {
 //verifyReqFails verify check params (TODO)
 func (gls *GitlabPlugin) verifyReqFails(ret *goforjj.PluginData, check map[string]bool) bool{
 	if v, ok := check["source"]; ok && v {
-		if reqCheckPath("source (forjj-source-mount)", gls.sourcePath, ret){ // ! \\
+		if reqCheckPath("source (forjj-source-mount)", gls.sourcePath, ret){
 			return true
 		}
 	}

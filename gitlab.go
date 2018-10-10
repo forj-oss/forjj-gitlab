@@ -235,7 +235,16 @@ func (gls *GitlabPlugin) checkSourcesExistence(when string) (err error){
 		return
 	
 	case "update":
-		log.Printf("TODO UPDATE")
+		if _, err := os.Stat(deployBase); err != nil {
+			if err = os.Mkdir(deployBase, 0755); err != nil {
+				return fmt.Errorf("Unable to create '%s'. %s", deployBase, err)
+			}
+		}
+		if _, err := os.Stat(gls.sourceFile); err != nil {
+			return fmt.Errorf("Unable to update the gitlab configuration which doesn't exist.\n" + "Use 'create' to create it or clone it")
+		}
+		return
 	}
+	
 	return
 }

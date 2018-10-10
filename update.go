@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/forj-oss/goforjj"
 	"log"
 	"os"
@@ -57,12 +58,12 @@ func addMaintainOptionValue(options map[string]goforjj.PluginOption, option, val
 }
 
 //SetProject set default remotes and branchConnect (TODO)
-func (r *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) {
-	upstream := r.DefineRepoUrls(project.Name)
+func (gls *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeployable bool) {
+	upstream := gls.DefineRepoUrls(project.Name)
 
-	owner := r.gitlabDeploy.Group
+	owner := gls.gitlabDeploy.Group
 	if isInfra {
-		owner = r.gitlabDeploy.ProdGroup
+		owner = gls.gitlabDeploy.ProdGroup
 	}
 
 	//set it, found or not
@@ -72,5 +73,51 @@ func (r *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeploy
 				map[string]string{"master": "origin/master"},
 				isInfra,
 				isDeployable, owner)
-	r.gitlabDeploy.Projects[project.Name] = pjt
+	gls.gitlabDeploy.Projects[project.Name] = pjt
+}
+
+//updateYamlData TODO
+func (gls *GitlabPlugin) updateYamlData(req *UpdateReq, ret *goforjj.PluginData) (bool, error) {
+	if gls.gitlabSource.Urls == nil {
+		return false, fmt.Errorf("Internal Error. Urls was not set")
+	}
+
+	if gls.gitlabDeploy.Projects == nil {
+		gls.gitlabDeploy.Projects = make(map[string]ProjectStruct)
+	}
+
+	//In update, we simply rebuild Users and Team from Forjfile.
+	//No need to keep track of removed one
+	//gls.gitlabDeploy.Users = make(map[string]string)
+	//...
+
+	if gls.app.ProjectsDisabled == "true" {
+		log.Print("ProjectsDisabled is true. forjj_gitlab won't manage projects except the infra one.")
+		gls.gitlabDeploy.NoProjects = true
+	} else {
+		//Updating all from Forjfile repos
+		gls.gitlabDeploy.NoProjects = false
+		//OrgHooks
+
+		for name, pjt := range req.Objects.Repo{
+			if !pjt.isValid(name, ret){
+				continue
+			}
+			gls.SetProject(&pjt, (name == gls.app.ForjjInfra), pjt.Deployable == "true")
+			//hooks
+		}
+
+		//Disabling missing one
+		for name, pjt := range gls.gitlabDeploy.Projects {
+			/*if err := pjt.isValid(name); err != nil { TODO isValid and delete
+				delete(gls.gitlabDeploy.Projects, name)
+
+			}*/
+		}
+	}
+	
+
+	//...
+
+	return false, fmt.Errorf("TODO")
 }

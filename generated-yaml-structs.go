@@ -18,10 +18,9 @@ type AppInstanceStruct struct {
 	OrganizationWebhooksDisabled string `json:"organization-webhooks-disabled"` // true if the plugin should not manage github organization webhooks.
 	ProDeployment string `json:"pro-deployment"` // true if current deployment is production one
 	ProductionGroup string `json:"production-group"` // Production github organization name. By default, it uses the FORJJ organization name
-	ReposDisabled string `json:"repos-disabled"` // true if the plugin should not manage github repositories except the infra repository.
-	ReposWebhooksDisabled string `json:"repos-webhooks-disabled"` // true if the plugin should not manage github repositories webhooks.
+	ProjectsDisabled string `json:"projects-disabled"` // true if the plugin should not manage github repositories except the infra repository.
+	ProjectsWebhooksDisabled string `json:"projects-webhooks-disabled"` // true if the plugin should not manage github repositories webhooks.
 	Server string `json:"server"` // Github Enterprise Server name. By default, public 'github.com' API is used.
-	TeamsDisabled string `json:"teams-disabled"` // true if the plugin should not manage github users and groups
 	Token string `json:"token"` // Github token to access. This token must authorize organization level access.
 
 }
@@ -213,16 +212,16 @@ const YamlDesc = "---\n" +
    "        required: true\n" +
    "        secure: true\n" +
    "        envar: \"TOKEN\"\n" +
-   "      teams-disabled:\n" +
-   "        help: \"true if the plugin should not manage github users and groups\"\n" +
-   "        default: false\n" +
-   "      repos-disabled:\n" +
+   "#      teams-disabled:\n" +
+   "#        help: \"true if the plugin should not manage github users and groups\"\n" +
+   "#        default: false\n" +
+   "      projects-disabled:\n" +
    "        help: \"true if the plugin should not manage github repositories except the infra repository.\"\n" +
    "        default: false\n" +
    "      organization-webhooks-disabled:\n" +
    "        help: true if the plugin should not manage github organization webhooks.\n" +
    "        default: false\n" +
-   "      repos-webhooks-disabled:\n" +
+   "      projects-webhooks-disabled:\n" +
    "        help: true if the plugin should not manage github repositories webhooks.\n" +
    "        default: false\n" +
    "      org-hook-policy:\n" +
