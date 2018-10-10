@@ -140,32 +140,49 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 //
 // By default, if httpCode is not set (ie equal to 0), the function caller will set it to 422 in case of errors (error_message != "") or 200
 func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCode int) {
-	/*var p *GitlabPlugin
+	instance := req.Forj.ForjjInstanceName
+	log.Print("Checking Infrastructure code existence.")
 
-	// This is where you shoud write your Update code. Following lines are typical code for a basic plugin.
-	if pr, ok := req.checkSourceExistence(ret); !ok {
+	var gls GitlabPlugin
+
+	if a, found := req.Objects.App[instance]; !found {
+		ret.Errorf("Invalid request. Missing Objects/App/%s", instance)
 		return
 	} else {
-		p = pr
+		gls = GitlabPlugin{
+			sourcePath: 	req.Forj.ForjjSourceMount,
+			deployMount: 	req.Forj.ForjjDeployMount,
+			instance:		instance,
+			deployTo: 		req.Forj.ForjjDeploymentEnv,
+			token:			a.Token,
+			app:			&a,
+		}
 	}
 
-	instance := req.Forj.ForjjInstanceName
-	if !p.loadYaml(ret, instance) {
+	check := make(map[string]bool)
+	check["token"] = true
+	check["source"] = true
+	log.Printf("Checking parameters : %#v", gls)
+
+	if gls.verifyReqFails(ret, check){
 		return
 	}
 
-	if !p.updateFrom(req, ret) {
+	if err := gls.checkSourcesExistence("update"); err != nil {
+		ret.Errorf("%s\nUnable to 'update' your forge", err)
 		return
 	}
 
-	// Example of the core task
-	//if ! p.update_jenkins_sources(ret) {
-	//    return
-	//}
+	if err := gls.loadYaml(gls.sourceFile); err != nil {
+		ret.Errorf("Unable to update gitlab instance '%s' source files. %s. Use 'create' to create it first.", instance, err)
+		return 419
+	}
 
-	if !p.saveYaml(ret, instance) {
+	if !req.InitGroup(&gls){
+		log.Printf(ret.Errorf("Unable to update. The group was not set in the request."))
 		return
-	}*/
+	}
+
 	return
 }
 
