@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/forj-oss/goforjj"
 	"log"
 	"os"
@@ -73,4 +74,9 @@ func (r *GitlabPlugin) SetProject(project *RepoInstanceStruct, isInfra, isDeploy
 				isInfra,
 				isDeployable, owner)
 	r.gitlabDeploy.Projects[project.Name] = pjt
+}
+
+//updateYamlData TODO
+func (r *GitlabPlugin) updateYamlData(req *UpdateReq, ret *goforjj.PluginData) (bool, error) {
+	return false, fmt.Errorf("TODO")
 }

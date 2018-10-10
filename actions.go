@@ -183,6 +183,55 @@ func DoUpdate(r *http.Request, req *UpdateReq, ret *goforjj.PluginData) (httpCod
 		return
 	}
 
+	if git := gls.gitlabConnect("X", ret); git == nil{
+		return
+	}
+
+	ret.StatusAdd("Environment checked. Ready to be updated.")
+
+	if _, err := gls.updateYamlData(req, ret); err != nil{ //fct TODO
+		ret.Errorf("Unable to update. %s", err)
+		return
+	}
+
+	gls.projectsExists(ret)
+
+	if Updated, err := gls.saveYaml(&gls.gitlabSource, gls.sourceFile); err != nil {
+		ret.Errorf("%s", err)
+		return
+	} else {
+		if !Updated {
+			log.Printf(ret.StatusAdd("Source: No gitlab configuration update detected."))
+		} else {
+			log.Printf(ret.StatusAdd("Source: gitlab configuration saved in '%s'.", path.Join(instance, gitlabFile)))
+
+			ret.CommitMessage = fmt.Sprint("Source: gitlab configuration updated.")
+			ret.AddFile(goforjj.FilesSource, path.Join(instance, gitlabFile))
+		}
+	}
+
+	//Save gls.gitlabDeploy
+	if Updated, err := gls.saveYaml(&gls.gitlabDeploy, gls.deployFile); err != nil {
+		ret.Errorf("%s", err)
+		return
+	} else {
+		if !Updated {
+			log.Printf(ret.StatusAdd("Deploy: No gitlab configuration update detected."))
+		} else {
+			log.Printf(ret.StatusAdd("Deploy: gitlab configuration seved in '%s'.", path.Join(instance, gitlabFile)))
+
+			ret.CommitMessage = fmt.Sprint("Deploy: gitlab configuration updated.")
+			ret.AddFile(goforjj.FilesDeploy, path.Join(instance, gitlabFile))
+		}
+	}
+
+	//Building final post answer
+	for k, v := range gls.gitlabSource.Urls{
+		ret.Services.Urls[k] = v
+	}
+	//
+	ret.Services.Urls["api-url"] = gls.gitlabSource.Urls["gitlab-base-url"]
+
 	return
 }
 
