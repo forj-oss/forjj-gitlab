@@ -54,6 +54,7 @@ type GitlabDeployStruct struct{
 	ProdGroup			string
 	Group				string
 	GroupDisplayName		string
+	GroupId				int
 	//...
 }
 
