@@ -108,12 +108,12 @@ func (gls *GitlabPlugin) updateYamlData(req *UpdateReq, ret *goforjj.PluginData)
 		}
 
 		//Disabling missing one
-		for name, pjt := range gls.gitlabDeploy.Projects {
-			/*if err := pjt.isValid(name); err != nil { TODO isValid and delete
+		/*for name, pjt := range gls.gitlabDeploy.Projects {
+			if err := pjt.isValid(name); err != nil { TODO isValid and delete
 				delete(gls.gitlabDeploy.Projects, name)
 
-			}*/
-		}
+			}
+		}*/
 	}
 	
 
