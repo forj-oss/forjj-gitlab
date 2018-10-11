@@ -89,8 +89,6 @@ func (gls *GitlabPlugin) ensureGroupExists(ret *goforjj.PluginData) (s bool){
 			//Set GroupID
 			gls.gitlabDeploy.GroupId = group.ID
 
-			//Ensure is writable (todo)
-
 			//Ensure user is owner (todo)
 
 			log.Printf(ret.StatusAdd("'%s' group access verified", gls.gitlabDeploy.Group))
