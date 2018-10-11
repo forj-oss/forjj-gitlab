@@ -64,7 +64,7 @@ func DoCreate(r *http.Request, req *CreateReq, ret *goforjj.PluginData) (httpCod
 
 	// Init Group of project
 	if !req.InitGroup(&gls){
-		ret.Errorf("Internal Error. Unable to define the group. The group must exist on Gitlab server.")
+		ret.Errorf("Internal Error. Unable to define the group.")
 	}
 
 	//Create yaml data for maintain function
