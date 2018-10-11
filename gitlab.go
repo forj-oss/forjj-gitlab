@@ -36,12 +36,6 @@ func (gls *GitlabPlugin) gitlabConnect(server string, ret *goforjj.PluginData) *
 //InitGroup TODO production group
 func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
-		if group := app.Group; group == ""{
-			return false
-		}
-		/*if prodGroup := app.ProductionGroup; prodGroup == ""{
-			return false
-		}*/
 		gls.SetGroup(app)
 		ret = true
 	}
@@ -51,43 +45,24 @@ func (req *CreateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 //InitGroup Same for now, TODO production group
 func (req *UpdateReq) InitGroup(gls *GitlabPlugin) (ret bool) {
 	if app, found := req.Objects.App[req.Forj.ForjjInstanceName]; found{
-		if group := app.Group; group == ""{
-			return false
-		}
-		/*if prodGroup := app.ProductionGroup; prodGroup == ""{
-			return false
-		}*/
 		gls.SetGroup(app)
 		ret = true
 	}
 	return
 }
 
-//SetGroup TODO production group
+//SetGroup ...
 func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
-	
-	if group := fromApp.ProductionGroup; group == ""{			//
-		//gls.gitlabDeploy.ProdGroup = fromApp.ForjjGroup		//
-	} else {													//
-		gls.gitlabDeploy.ProdGroup = group						//
-	}															//
-
-	gls.gitlabDeploy.Group = fromApp.Group
-	//Get+set id
-	groups, _, err := gls.Client.Groups.SearchGroup(fromApp.Group)
-	if err != nil{
-		log.Printf("Group not exists in Gitlab server. ID not set.") //Change to stop, without ID maintain not found
+	if group := fromApp.Group; group == ""{
+		gls.gitlabDeploy.Group = fromApp.ForjjGroup
+	} else {
+		gls.gitlabDeploy.Group = group
 	}
-	for _, element := range groups{
-		if element.Name == fromApp.Group {
-			gls.gitlabDeploy.GroupId = element.ID
-		}
+	if group := fromApp.ProductionGroup; group == ""{
+		gls.gitlabDeploy.ProdGroup = fromApp.ForjjGroup
+	} else {
+		gls.gitlabDeploy.ProdGroup = group
 	}
-	if gls.gitlabDeploy.GroupId == 0 {
-		log.Printf("Group not exists in Gitlab server. ID not set.") //Change to stop, without ID maintain not found
-	}
-
-	//gls.gitlabDeploy.ProdGroup = fromApp.ProductionGroup
 	gls.gitlabSource.ProdGroup = gls.gitlabDeploy.ProdGroup
 }
 
@@ -95,7 +70,37 @@ func (gls *GitlabPlugin) SetGroup(fromApp AppInstanceStruct) {
 func (gls *GitlabPlugin) ensureGroupExists(ret *goforjj.PluginData) (s bool){
 	//Ensure Group exist, todo: if not it is created.
 	//Ensure user is owner (or same).
-	return																   
+
+	if gls.gitlabDeploy.Group == "" {
+		ret.Errorf("Invalid group. The group is empty")
+		return
+	}
+
+	s = false
+
+	//Try to get group
+	groups, _, err := gls.Client.Groups.SearchGroup(gls.gitlabDeploy.Group)
+	if err != nil{
+		log.Printf(ret.Errorf("Unable to get '%s' group information. %s", gls.gitlabDeploy.Group, err))
+		return
+	}
+	for _, group := range groups{
+		if group.Name == gls.gitlabDeploy.Group {
+			//Set GroupID
+			gls.gitlabDeploy.GroupId = group.ID
+
+			//Ensure is writable (todo)
+
+			//Ensure user is owner (todo)
+
+			log.Printf(ret.StatusAdd("'%s' group access verified", gls.gitlabDeploy.Group))
+			return true
+		}
+	}
+
+	//Need to create the group (todo --> create for user)
+	log.Printf(ret.Errorf("'%s' group need to be created. "))
+	return
 }
 
 //IsNewForge ...

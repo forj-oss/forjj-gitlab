@@ -42,7 +42,8 @@ objects: # All objects will be delivered by forjj except workspace/infra under o
   #      help: "Github Organization name. By default, it uses the FORJJ organization name"
       group:
         only-for-actions: ["add"]
-        help: "Gitlab group name."
+        help: "Gitlab group name. By default, it uses the Forjj group name"
+        default: "{{ .Deployments.GetFromPRO \"app\" .Current.Name \"organization\" }}"
       production-group:
         help: "Production github organization name. By default, it uses the FORJJ organization name"
         default: "{{ .Deployments.GetFromPRO \"app\" .Current.Name \"organization\" }}"
