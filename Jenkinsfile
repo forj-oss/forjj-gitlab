@@ -23,7 +23,7 @@ pipeline {
         stage('Tests') {
             steps {
                 sh('''set +x ; source ./build-env.sh
-                go test forjj-bitbucket''')
+                go test forjj-gitlab''')
             }
         }
         stage('Deploy') {
