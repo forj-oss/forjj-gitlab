@@ -18,6 +18,7 @@ function be_ci_detected {
     export CI_ENABLED=FALSE
     if [[ "$WORKSPACE" != "" ]]
     then
+        set +xe
         echo "Jenkins environment detected"
         export CI_WORKSPACE="$WORKSPACE"
         export CI_ENABLED=TRUE
@@ -93,7 +94,7 @@ function unset_build_env {
         alias build-env='if [ -f build-env.sh ] ; then source build-env.sh ; else echo "Please move to your project where build-env.sh exists." ; fi'
 
         # TODO: Be able to load from a defined list of build env type. Here it is GO
-        local MODS=(`cat build-env.modules`)
+        local MODS="`cat build-env.modules`"
         for MOD in $MODS
         do
             unset_${MOD}
@@ -214,7 +215,8 @@ function be_update {
         echo "build-env.fcts refreshed"
     fi
 
-    local MODS=(`cat build-env.modules`)
+    local MODS="`cat build-env.modules`"
+    echo "Modules to install: $MODS"
     for MOD in $MODS core
     do
         if [[ $MOD = core ]]
@@ -251,6 +253,26 @@ function docker_build_env {
     then
         be_create_${1}_docker_build
     fi
+
+    if [[ $1 = core ]]
+    then
+        _be_gitignore
+    fi
+}
+
+function _be_gitignore {
+    if [[ -f .gitignore ]]
+    then
+       if [[ "$(grep '^.be-\*$' .gitignore)" = "" ]]
+       then
+           echo ".be-*" >> .gitignore
+           echo ".gitignore updated."
+       fi
+    else
+        echo ".be-*" > .gitignore
+        echo ".gitignore created."
+    fi
+
 }
 
 function _be_set_debug {
